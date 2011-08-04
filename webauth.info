@@ -1,0 +1,6 @@
+; $Id: webauth.info 1807 2010-03-18 16:53:04Z ksharp $
+name = WebAuth
+description = Authenticates users through Stanford WebAuth.
+package = WebAuth
+version = 3.0-beta1
+core = 6.x
