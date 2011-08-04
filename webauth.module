@@ -192,7 +192,7 @@ function webauth_grant_roles(&$account) {
   
   if ($wa_session->isValidSession()) {
     $groups = $wa_session->getLdapGroups();
-    print_r($groups);
+    //Add group mapping.
   }
 }
 
