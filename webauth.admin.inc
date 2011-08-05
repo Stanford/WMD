@@ -16,6 +16,20 @@ function webauth_admin_settings() {
 		'#description' => t('The domain name to be appended to username if email address is missing.')
 	);
 	
+	$result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
+	$roles = array();
+ 	while ($role = db_fetch_object($result)) {
+ 	  $roles[$role->rid] = $role->name;
+ 	}
+  
+  $form['webauth_default_role'] = array(
+    '#type' => 'select',
+    '#title' => t('Default Webauth User Role'),
+    '#description' => t('This is the default role that the user is added to upon successful login / registration.'),
+    '#options' => $roles,
+    '#default_value' => variable_get('webauth_default_role'),
+  );
+
 	$defValue = variable_get('webauth_allow_local', 1);
 	$form['webauth_allow_local'] = array(
 		'#type' => 'radios',

@@ -6,6 +6,8 @@
  *
  */
  
+define('WEBAUTH_DOMAIN', 'stanford.edu');
+ 
 include_once(drupal_get_path('module', 'webauth') . '/WebAuthSession.inc');
 
 /**
@@ -92,7 +94,7 @@ function webauth_return() {
       $form_state = array();
       $form_state['values']['name'] = $wa_session->getSessionData('wa_remote_user');
       $form_state['values']['pass'] = 'dummy';
-      $form_state['weblogin']['server'] = variable_get('webauth_domain', 'stanford.edu');
+      $form_state['weblogin']['server'] = variable_get('webauth_domain', WEBAUTH_DOMAIN);
       drupal_execute('user_login', $form_state);
     }
     else {
