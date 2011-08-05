@@ -39,7 +39,7 @@ function webauth_admin_settings() {
 		'#options' => array(0 => t('Disable WebAuth Auto-Login'), 1 => t('Enable Webauth Auto-Login')),
 		'#description' => t('Enable or Disable WebAuth Auto-Login feature. When enabled, option for auto-login appears on node-edit page.'),
 	);
-
+  /*
 	$defValue2 = variable_get('webauth_restrict', 0);
   $form['webauth_restrict'] = array(
     '#type' => 'radios',
@@ -91,7 +91,8 @@ function webauth_admin_settings() {
   );
 		
 	$form['#validate'] = array('validateWebAuthAdmin');
-
+  */
+  
 	return system_settings_form($form);
 }
 
