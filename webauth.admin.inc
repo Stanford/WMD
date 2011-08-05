@@ -97,10 +97,10 @@ function webauth_admin_groups(&$form_state) {
 }
 
 function webauth_admin_groups_validate($form, &$form_state) {
-  $result = preg_match('/~?[\w_-]+:[\w_/-]+/', $form_state['values']['new_group']);
-  print_r($result);die();
-  if (count($result) <= 1) {
-    //form_set_error('new_group', t('There was an error in your group name.  Please make sure you entered it correctly.'));
+  if ($form_state['clicked_button']['#value'] == t('Add Mapping')) {
+    if (preg_match('/~?[\w_-]+:[\w_\/-]+/', $form_state['values']['new_group']) == 0) {
+      form_set_error('new_group', t('There was an error in your group name.  Please make sure you entered it correctly.'));
+    }
   }
 }
 
