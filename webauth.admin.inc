@@ -50,7 +50,6 @@ function webauth_admin_groups(&$form_state) {
 	$form = array();
 	$groups = array();
 	$table = array();
-	$submitted = !empty($form_state['post']);
 	
 	$result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > 2");
 	while ($group = db_fetch_object($result)) {
@@ -60,10 +59,8 @@ function webauth_admin_groups(&$form_state) {
 	    '#type' => 'submit',
 	    '#value' => t('Remove Mapping'),
 	  );
-	  if (!$submitted) {
-	    $row = array($group->name, $group->group, drupal_render($form[$button_id]));
-	    $table[] = $row;
-	  }
+	  $row = array($group->name, $group->group, drupal_render($form[$button_id]));
+	  $table[] = $row;
 	}
 	
 	$header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
@@ -91,12 +88,10 @@ function webauth_admin_groups(&$form_state) {
     '#value' => t('Add Mapping'),
   );
   
-  if (!$submitted) {
-    $table[] = array(drupal_render($form['new_rid']), drupal_render($form['new_group']), drupal_render($form['new_submit']));  
-    $form['output'] = array(
-      '#value' => theme('table', $header, $table),
-    );
-  }
+  $table[] = array(drupal_render($form['new_rid']), drupal_render($form['new_group']), drupal_render($form['new_submit']));  
+  $form['output'] = array(
+    '#value' => theme('table', $header, $table),
+  );
 
 	return $form;
 }
