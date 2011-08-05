@@ -12,7 +12,7 @@ function webauth_admin_settings() {
 		'#type' => 'textfield',
 		'#title' => t('Webauth Domain Name'),
 		'#size' => 80, '#maxlength' =>255,
-		'#default_value' => variable_get('webauth_link_text','SUNetID Users'),
+		'#default_value' => variable_get('webauth_domain','stanford.edu'),
 		'#description' => t('The domain name to be appended to username if email address is missing.')
 	);
 	
