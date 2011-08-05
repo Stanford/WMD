@@ -39,59 +39,6 @@ function webauth_admin_settings() {
 		'#options' => array(0 => t('Disable WebAuth Auto-Login'), 1 => t('Enable Webauth Auto-Login')),
 		'#description' => t('Enable or Disable WebAuth Auto-Login feature. When enabled, option for auto-login appears on node-edit page.'),
 	);
-  /*
-	$defValue2 = variable_get('webauth_restrict', 0);
-  $form['webauth_restrict'] = array(
-    '#type' => 'radios',
-    '#title' => t('Node Access Restrictions'),
-		'#default_value' => $defValue2,
-    '#options' => array(0 => t('Disable Node Access Restrictions'), 1 => t('Enable Node Access Restrictions')),
-    '#description' => t('Enable or Disable WebAuth-based node access restrictions for Drupal roles and Stanford Workgroups'),
-  );
-
-	$form['webauth_restrict_message'] = array(
-		'#type' => 'textfield',
-		'#title' => t('Restricted Access Message'),
-		'#default_value' => variable_get('webauth_restrict_message', ''),
-		'#description' => t('Message to be displayed to user when access to content is restricted.'),
-	);
-
-	$ldapDescription = 'Credential cache is needed for restricting content access based on Stanford Workgroup membership. Example: "/opt/www/apache/conf/webauth/krb5cc_ldap"<br />';
-	$ldapDescription .= WORKGROUP_MSG;
-	$form['webauth_ldap_cred'] = array(
-		'#type' => 'textfield',
-		'#title' => t('LDAP Credential Cache Location'),
-		'#size' => 80, 
-		'#maxlength' => 255,
-		'#default_value' => variable_get('webauth_ldap_cred', NULL),
-		'#description' => t($ldapDescription));
-
-  $form['webauth_ldap_test'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Test LDAP Connection'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#description' => t('Enter a SUNetID and a Stanford Workgroup in the boxes below to test LDAP connectivity.'),
-  );
-
-  $form['webauth_ldap_test']['tstLDAPuserid'] = array(
-    '#type' => 'textfield',
-    '#title' => 'SUNetID',
-    '#default_value' => variable_get('tstLDAPuserid', NULL),
-    '#size' => 20,
-    '#maxlength' => 255,
-  );
-
-  $form['webauth_ldap_test']['tstLDAPgroup'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Stanford Workgroup',
-    '#default_value' => variable_get('tstLDAPgroup', NULL),
-    '#size' => 20,
-    '#maxlength' => 255,
-  );
-		
-	$form['#validate'] = array('validateWebAuthAdmin');
-  */
   
 	return system_settings_form($form);
 }
@@ -155,6 +102,11 @@ function webauth_admin_groups(&$form_state) {
 }
 
 function webauth_admin_groups_validate($form, &$form_state) {
+  $result = preg_match('/~?[\w_-]+:[\w_/-]+/', $form_state['values']['new_group']);
+  print_r($result);die();
+  if (count($result) <= 1) {
+    //form_set_error('new_group', t('There was an error in your group name.  Please make sure you entered it correctly.'));
+  }
 }
 
 function webauth_admin_groups_submit($form, &$form_state) {
