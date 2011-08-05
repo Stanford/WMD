@@ -121,7 +121,7 @@ function webauth_admin_groups(&$form_state) {
 	
 	$header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
 	
-	$result = db_query('SELECT rid, name FROM {role}');
+	$result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
  	while ($role = db_fetch_object($result)) {
  	  $roles[$role->rid] = $role->name;
  	}
