@@ -249,10 +249,12 @@ function webauth_write_htaccess() {
 
   // If webauth dir doesn't exist yet, create it.      
   if (@is_dir($webauth_path) === FALSE) {
-    file_check_directory($webauth_path, FILE_CREATE_DIRECTORY + FILE_MODIFY_PERMISSIONS);
+    // Create dir.
+    mkdir($webauth_path, 0755);
+    
     // Copy necessary check.php file over.
     $default_check_file = drupal_get_path('module', 'webauth') . '/default/check.php';
-    file_copy($default_check_file, $webauth_path. '/check.php', FILE_EXISTS_REPLACE);
+    copy($default_check_file, $webauth_path . '/check.php');
   }
   
   // Save .htaccess file to location.
