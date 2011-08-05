@@ -27,7 +27,7 @@ function webauth_admin_settings() {
     '#title' => t('Default Webauth User Role'),
     '#description' => t('This is the default role that the user is added to upon successful login / registration.'),
     '#options' => $roles,
-    '#default_value' => variable_get('webauth_default_role'),
+    '#default_value' => variable_get('webauth_default_role', ''),
   );
 
 	$defValue = variable_get('webauth_allow_local', 1);
