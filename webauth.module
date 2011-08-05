@@ -90,9 +90,9 @@ function webauth_return() {
   if (!$user->uid) {
     if ($wa_session->isValidSession()) {
       $form_state = array();
-      $form_state['values']['name'] = $wa_session->getSessionData('wa_user');
+      $form_state['values']['name'] = $wa_session->getSessionData('wa_remote_user');
       $form_state['values']['pass'] = 'dummy';
-      $form_state['weblogin']['server'] = 'stanford.edu';
+      $form_state['weblogin']['server'] = variable_get('webauth_domain', 'stanford.edu');
       drupal_execute('user_login', $form_state);
     }
     else {
@@ -183,10 +183,23 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 function webauth_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'login':
+      webauth_grant_roles($edit, $account);
+      break;
     case 'insert':
+      webauth_update_fields($edit, $account);
       webauth_grant_roles($edit, $account);
       break;
   }
+}
+
+function webauth_update_fields(&$edit, &$account) {
+  global $wa_session;
+  if (!$wa_session) {
+    $wa_session = new WebAuthSession();
+  }
+  
+  $mail = $wa_session->getSessionData('wa_ldap_mail');
+  $edit->mail =  isset($mail) ? $mail : $account->name;
 }
 
 function webauth_grant_roles(&$edit, &$account) {

@@ -8,6 +8,14 @@ function webauth_admin_settings() {
 	  return;
 	}
 	
+	$form['webauth_domain'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Webauth Domain Name'),
+		'#size' => 80, '#maxlength' =>255,
+		'#default_value' => variable_get('webauth_link_text','SUNetID Users'),
+		'#description' => t('The domain name to be appended to username if email address is missing.')
+	);
+	
 	$defValue = variable_get('webauth_allow_local', 1);
 	$form['webauth_allow_local'] = array(
 		'#type' => 'radios',
