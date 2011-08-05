@@ -199,7 +199,7 @@ function webauth_update_fields(&$edit, &$account) {
   }
   
   $mail = $wa_session->getSessionData('wa_ldap_mail');
-  $edit->mail =  isset($mail) ? $mail : $account->name;
+  $edit['mail'] =  isset($mail) ? $mail : $account->name;
 }
 
 function webauth_grant_roles(&$edit, &$account) {
