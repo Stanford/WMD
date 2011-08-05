@@ -146,7 +146,11 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
     case 'user_login_block':
     case 'user_login':
       if (isset($form_state['weblogin']['server'])) {
-        $form['#validate'] = array('webauth_auth');
+        $form['#validate'] = array(
+          'user_login_name_validate', 
+          'webauth_login_validate', 
+          'user_login_final_validate',
+        );
       }
 
       // build a link to wa_login.
@@ -179,12 +183,13 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 function webauth_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'login':
-      webauth_grant_roles($account);
+    case 'insert':
+      webauth_grant_roles($edit, $account);
       break;
   }
 }
 
-function webauth_grant_roles(&$account) {
+function webauth_grant_roles(&$edit, &$account) {
   global $wa_session;
   if (!$wa_session) {
     $wa_session = new WebAuthSession();
@@ -192,15 +197,33 @@ function webauth_grant_roles(&$account) {
   
   if ($wa_session->isValidSession()) {
     $groups = $wa_session->getLdapGroups();
-    //Add group mapping.
+    $new = $account->roles;
+    
+    // Add SUNet User role for all valid users.
+    $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", t('SUNet User')));
+    $new[$rid] = t('SUNet User');
+    
+    // Find all roles that are in the webauth_roles table and add any ones that user is in.
+    $result = db_query("SELECT r.rid, r.name, wr.wa_group AS `group` FROM {webauth_roles} wr INNER JOIN {role} r ON r.rid = wr.rid");
+    while ($role = db_fetch_object($result)) {
+      if (in_array($role->group, $groups)) {
+        $new[$role->rid] = $role->name;
+      }
+      else {
+        // Remove user from groups that they are no longer in.
+        unset($new[$role->rid]);
+      }
+    }
+    user_save($account, $new);
   }
 }
 
-function webauth_auth($form, &$form_state) {
+function webauth_login_validate($form, &$form_state) {
   global $wa_session;
   
-  if ($wa_session->isValidSession() && $form_state['submitted']) {
+  if ($wa_session->isValidSession()) {
     user_external_login_register($form_state['values']['name'] . '@' . $form_state['weblogin']['server'], 'webauth');
+    user_authenticate_finalize($form_state['values']);
   }
 }
 
