@@ -175,7 +175,7 @@ class WebAuthSession {
       foreach ($this->headers as $k => $v) {
         // Check for WA_LDAPPRIVGROUP.
         if (drupal_substr($k, 0, 16) == 'wa_ldapprivgroup') {
-          $this->data['ldap_groups'][] = $v;
+          $this->data['ldap_groups'][$v] = $v;
         }
         else {
           $this->data[$k] = $v;

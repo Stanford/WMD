@@ -197,21 +197,20 @@ function webauth_grant_roles(&$edit, &$account) {
   
   if ($wa_session->isValidSession()) {
     $groups = $wa_session->getLdapGroups();
-    $new = $account->roles;
-    
+    $new = array('roles' => $account->roles);
     // Add SUNet User role for all valid users.
     $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", t('SUNet User')));
-    $new[$rid] = t('SUNet User');
+    $new['roles'][$rid] = t('SUNet User');
     
     // Find all roles that are in the webauth_roles table and add any ones that user is in.
     $result = db_query("SELECT r.rid, r.name, wr.wa_group AS `group` FROM {webauth_roles} wr INNER JOIN {role} r ON r.rid = wr.rid");
     while ($role = db_fetch_object($result)) {
       if (in_array($role->group, $groups)) {
-        $new[$role->rid] = $role->name;
+        $new['roles'][$role->rid] = $role->name;
       }
       else {
         // Remove user from groups that they are no longer in.
-        unset($new[$role->rid]);
+        unset($new['roles'][$role->rid]);
       }
     }
     user_save($account, $new);
