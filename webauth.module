@@ -183,12 +183,19 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 function webauth_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'login':
-      webauth_grant_roles($edit, $account);
+      // If we are a local account, check for roles and re-grant new roles.
+      if (in_array(variable_get('webauth_default_role', ''), array_keys($account->roles))) {
+        webauth_grant_roles($edit, $account);
+      }
       break;
     case 'insert':
       webauth_update_fields($edit, $account);
       webauth_grant_roles($edit, $account);
       break;
+    case 'logout':
+      if (isset($_COOKIE['webauth_at'])) {
+        unset($_COOKIE['webauth_at']);
+      }
   }
 }
 
