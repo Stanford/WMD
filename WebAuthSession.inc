@@ -183,7 +183,12 @@ class WebAuthSession {
       }
       $this->writeSessionData();
     }
-    $this->returnUrl = $_SESSION['wa_return_url'] ? $_SESSION['wa_return_url'] : 'user';
+    if (isset($_SESSION['wa_return_url'])) {
+      $this->returnUrl = $_SESSION['wa_return_url']['path'] . '?' . $_SESSION['wa_return_url']['query'];
+    }
+    else {
+      $this->returnUrl = 'user';   
+    }
   }
   
   public function isValidSession() {
@@ -244,6 +249,12 @@ class WebAuthSession {
   		}
   		$query .= $key . '=' . drupal_urlencode($value);
   	}
+  	
+  	// Save the return url
+  	$_SESSION['wa_return_url'] = array(
+  	  'path' => $returnDest,
+  	  'query' => $query,
+  	);
   	
   	// Create auth URL.
     $this->authUrl = url(variable_get('webauth_path', conf_path() . '/webauth') . '/login', 
