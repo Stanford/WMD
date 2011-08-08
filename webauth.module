@@ -156,7 +156,8 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       // build a link to wa_login.
       // added double quotes to webauth link - Lance Simms 8/13/08
       $webauth_login = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
-      $wa_url = l(variable_get('webauth_link_text','SUNetID'), $webauth_login);
+      $wa_url = l(variable_get('webauth_link_text','SUNetID'), $webauth_login, 
+                  array('query' => array('destination' => $_GET['q'])));
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">',  // make it themable
         '#value' => $wa_url,
