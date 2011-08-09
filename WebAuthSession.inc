@@ -187,7 +187,7 @@ class WebAuthSession {
       $this->returnUrl = $_SESSION['wa_return_url']['path'] . '?' . $_SESSION['wa_return_url']['query'];
     }
     else {
-      $this->returnUrl = 'user';   
+      $this->returnUrl = variable_get('webauth_destination', 'user');   
     }
   }
   
