@@ -1,0 +1,15 @@
+# $Id$
+
+AuthType WebAuth
+require valid-user
+
+WebAuthLdapAttribute displayName
+WebAuthLdapAttribute suAffiliation
+
+
+WebAuthLdapPrivgroup stanford:student
+
+WebAuthLdapPrivgroup stanford:staff
+
+WebAuthLdapPrivgroup stanford:faculty
+

@@ -50,6 +50,7 @@ function webauth_install() {
   
   // Write htaccess file.
   webauth_write_htaccess();
+  copy(drupal_get_path('module', 'webauth') . '/default/.htaccess', variable_get('webauth_path', '') . '/.htaccess');
 }
 
 /**
