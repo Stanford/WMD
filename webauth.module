@@ -25,6 +25,7 @@ function webauth_init() {
   $has_xhost = (bool) strcmp($_SERVER['HTTP_X_FORWARDED_HOST'], 
                              variable_get('webauth_xhost','')) !== 0;
   $is_return_url = (bool) $_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login';
+  $access_denied_page = variable_get('site_404', '');
                              
 	// If we are running behind a proxy server, save the xhost value in our drupal variables.
 	if ($is_forwarded && !$has_xhost) {
@@ -35,8 +36,11 @@ function webauth_init() {
 	if (!$is_return_url) {
     $wa_session = new WebAuthSession();
   }
+  
+  if ($_GET['q'] == $access_denied_page) {
+    print_r($wa_session);
+  }
 }
-
 
 /**
  * Implementation of hook_menu().
@@ -178,6 +182,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+
 /**
  * Implementation of hook_user().
  */
@@ -233,10 +238,13 @@ function webauth_grant_roles(&$edit, &$account) {
       while ($role = db_fetch_object($result)) {
         if (in_array($role->group, $groups)) {
           $new['roles'][$role->rid] = $role->name;
+          $account->data['webauth_assigned_roles'][$role->rid] = $role->name;
         }
         else {
           // Remove user from groups that they are no longer in.
-          unset($new['roles'][$role->rid]);
+          if (in_array($role->name, $account->data['webauth_assigned_roles'])) {
+            unset($new['roles'][$role->rid]);
+          }
         }
       }
     }
