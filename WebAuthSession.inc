@@ -158,9 +158,9 @@ class WebAuthSession {
   }
 
   public function writeSessionData() {
-  	if (isset($_SERVER['HTTPS'])) {
+    if (isset($_SERVER['HTTPS'])) {
       $_SESSION['wa_session_data'] = $this->data;
-  	}
+    }
   }
 
   public function sessionStart() {
@@ -221,14 +221,16 @@ class WebAuthSession {
   }
   
   public function getWeblogin() {
-    drupal_goto($this->authUrl);
+    if (!$this->isLoggedIn) {
+      header("Location: " . $this->authUrl);
+    }
   }
   
   public function makeAuthUrl() {
   	// Figure out our return destination and save to a cookie for later consumption
   	$returnDest = '';
   	$wa_dest = trim(variable_get('webauth_destination',''));
-  	if (isset($_REQUEST['destination']) && strcmp($_REQUEST['destination'],'admin') == 0) {
+  	if (isset($_REQUEST['destination']) && strcmp($_REQUEST['destination'], 'admin') !== FALSE) {
   		$returnDest = $_REQUEST['destination'];
   	} 
   	elseif ($forceNode != NULL) {
@@ -238,7 +240,7 @@ class WebAuthSession {
   		$returnDest = $wa_dest;
   	} 
   	elseif (isset($_REQUEST['q']) && strcmp($_REQUEST['q'], 'user/login') != 0) {
-  		$returnDest = $_REQUEST['q'];
+  		$returnDest = $_GET['q'];
   	}
   	
   	// Save query for later use.
@@ -258,7 +260,8 @@ class WebAuthSession {
   	
   	// Create auth URL.
     $this->authUrl = url(variable_get('webauth_path', conf_path() . '/webauth') . '/login', 
-                         array('absolute' => TRUE));
+                         array('absolute' => TRUE, 
+                               'query' => array('destination' => $returnDest)));
   }
   
   public function getHeaderData() {
