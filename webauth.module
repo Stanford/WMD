@@ -11,6 +11,18 @@ define('WEBAUTH_DOMAIN', 'stanford.edu');
 include_once(drupal_get_path('module', 'webauth') . '/WebAuthSession.inc');
 
 /**
+ * Implementation of hook_boot().
+ */
+function webauth_boot() {
+  global $base_url, $user;
+  
+  if (!empty($_SERVER['HTTPS'])) {
+    ini_set('session.cookie_secure', 1);
+    $base_url = str_replace('http:', 'https:', $base_url);
+  }
+}
+
+/**
  * Implementation of hook_init().
  */
 function webauth_init() {
@@ -26,17 +38,19 @@ function webauth_init() {
                              variable_get('webauth_xhost','')) !== 0;
   $is_return_url = (bool) $_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login';
                              
-	// If we are running behind a proxy server, save the xhost value in our drupal variables.
-	if ($is_forwarded && !$has_xhost) {
-		variable_set('webauth_xhost', $_SERVER['HTTP_X_FORWARDED_HOST']);
-	}
+  // If we are running behind a proxy server, save the xhost value in our drupal variables.
+  if ($is_forwarded && !$has_xhost) {
+    variable_set('webauth_xhost', $_SERVER['HTTP_X_FORWARDED_HOST']);
+  }
 	
-	// Start new WebAuthSession.
-	if (!$is_return_url) {
+  // Start new WebAuthSession.
+  if (!$is_return_url) {
     $wa_session = new WebAuthSession();
+    if (!$wa_session->isValidSession()) {
+      user_logout();
+    }
   }
 }
-
 
 /**
  * Implementation of hook_menu().
@@ -126,7 +140,7 @@ function webauth_theme($existing, $type, $theme, $path) {
  * Implementation of hook_form_alter().
  */
 function webauth_form_alter(&$form, &$form_state, $form_id) {
-  global $user;
+  global $user, $base_url;
   
   switch ($form_id) {
     case 'user_profile_form':
@@ -155,9 +169,12 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 
       // build a link to wa_login.
       // added double quotes to webauth link - Lance Simms 8/13/08
+      $secure_base_url = str_replace('http:', 'https:', $base_url);
       $webauth_login = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
       $wa_url = l(variable_get('webauth_link_text','SUNetID'), $webauth_login, 
-                  array('query' => array('destination' => $_GET['q'])));
+                  array('query' => array('destination' => $_GET['q']),
+                        'base_url' => $secure_base_url,
+                        'absolute' => TRUE));
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">',  // make it themable
         '#value' => $wa_url,
@@ -195,8 +212,8 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       break;
     case 'logout':
       if (isset($_COOKIE['webauth_at'])) {
-        unset($_COOKIE['webauth_at']);
-        setcookie('webauth_at', '', time() - 3600, '/');
+        //unset($_COOKIE['webauth_at']);
+        //setcookie('webauth_at', '', time() - 3600, '/');
       }
   }
 }
