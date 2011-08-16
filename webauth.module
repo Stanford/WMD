@@ -11,18 +11,6 @@ define('WEBAUTH_DOMAIN', 'stanford.edu');
 include_once(drupal_get_path('module', 'webauth') . '/WebAuthSession.inc');
 
 /**
- * Implementation of hook_boot().
- */
-function webauth_boot() {
-  global $base_url, $user;
-  
-  if (!empty($_SERVER['HTTPS'])) {
-    ini_set('session.cookie_secure', 1);
-    $base_url = str_replace('http:', 'https:', $base_url);
-  }
-}
-
-/**
  * Implementation of hook_init().
  */
 function webauth_init() {
