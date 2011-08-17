@@ -259,9 +259,19 @@ class WebAuthSession {
   	);
   	
   	// Create auth URL.
-    $this->authUrl = url(variable_get('webauth_path', conf_path() . '/webauth') . '/login', 
-                         array('absolute' => TRUE, 
-                               'query' => array('destination' => $returnDest)));
+    $this->authUrl = $this->getLoginUrl($returnDest);
+  }
+  
+  public function getLoginUrl($destination) {
+    if (!variable_get('clean_url', FALSE)) {
+      $return = 'https://' . $_SERVER['SERVER_NAME'] . base_path() . variable_get('webauth_path', conf_path() . '/webauth') 
+                . '/login?destination=' . $destination;
+    }
+    else {
+      $return = url(variable_get('webauth_path', conf_path() . '/webauth') . '/login', 
+                    array('absolute' => TRUE, 'query' => array('destination' => $destination)));
+    }
+    return $return;
   }
   
   public function getHeaderData() {

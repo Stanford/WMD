@@ -66,35 +66,20 @@ function webauth_admin_settings() {
 }
 
 function webauth_admin_groups(&$form_state) {
-	if (variable_get('webauth_nossl', FALSE)) {
-	  return;
-	}
-	$form = array();
-	$groups = array();
-	$table = array();
-        $submitted = !empty($form_state['post']);
-	
-	$result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > 2");
-	while ($group = db_fetch_object($result)) {
-	  $button_id = 'remove_warid_' . $group->warid;
-	  $form[$button_id] = array(
-	    '#name' => $button_id,
-	    '#type' => 'submit',
-	    '#value' => t('Remove Mapping'),
-	  );
-          if (!$submitted) {
-	    $row = array($group->name, $group->group, drupal_render($form[$button_id]));
-          }
-	  $table[] = $row;
-	}
-	
-	$header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
-	
-	$result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
- 	while ($role = db_fetch_object($result)) {
- 	  $roles[$role->rid] = $role->name;
- 	}
-  
+  if (variable_get('webauth_nossl', FALSE)) {
+    return;
+  }
+
+  $form = array();
+  $groups = array();
+  $table = array();
+  $submitted = !empty($form_state['post']);
+
+  $result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
+  while ($role = db_fetch_object($result)) {
+    $roles[$role->rid] = $role->name;
+  }
+
   $form['new_rid'] = array(
     '#name' => 'new_rid',
     '#type' => 'select',
@@ -116,11 +101,27 @@ function webauth_admin_groups(&$form_state) {
   if (!$submitted) {
     $table[] = array(drupal_render($form['new_rid']), drupal_render($form['new_group']), drupal_render($form['new_submit']));  
   }
+	
+  $result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > 2");
+  while ($group = db_fetch_object($result)) {
+    $button_id = 'remove_warid_' . $group->warid;
+    $form[$button_id] = array(
+      '#name' => $button_id,
+      '#type' => 'submit',
+      '#value' => t('Remove Mapping'),
+    );
+    if (!$submitted) {
+      $row = array($group->name, $group->group, drupal_render($form[$button_id]));
+    }
+    $table[] = $row;
+  }
+	
+  $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
   $form['output'] = array(
     '#value' => theme('table', $header, $table),
   );
 
-	return $form;
+  return $form;
 }
 
 function webauth_admin_groups_validate($form, &$form_state) {
@@ -149,4 +150,37 @@ function webauth_admin_groups_submit($form, &$form_state) {
   
   // Need to update the .htaccess file.
   webauth_write_htaccess();
+}
+
+function webauth_admin_users(&$form_state) {
+  if (variable_get('webauth_nossl', FALSE)) {
+    return;
+  }
+
+  $form = array();
+ 
+  $form['webauth_require_valid_user'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Require ANY valid user'),
+    '#description' => t('Require the valid-user statement in settings. This overrides whatever users are entered below. Default is on.'),
+    '#default_value' => variable_get('webauth_require_valid_user', 1),
+  );
+
+  $form['webauth_require_users'] = array(
+    '#type' => 'textarea',
+    '#title' => t('SUNet users permitted access'),
+    '#description' => t('Enter one user per line.'),
+    '#default_value' => variable_get('webauth_require_users', ''),
+  );
+
+  $form = system_settings_form($form);
+
+  $form['#submit'][] = 'webauth_admin_users_submit';
+
+  return $form;
+}
+
+function webauth_admin_users_submit($form, &$form_state) {
+  // Need to update the .htaccess file.
+  webauth_write_htaccess(); 
 }

@@ -84,8 +84,18 @@ function webauth_menu() {
     'weight' => -10,
   );
 
+  $items['admin/settings/webauth/users'] = array(
+    'title' => 'Users',
+    'description' => 'Edit the groups that can use Webauth for content access.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('webauth_admin_users'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'webauth.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
   $items['admin/settings/webauth/groups'] = array(
-    'title' => 'WebAuth Groups',
+    'title' => 'Groups',
     'description' => 'Edit the groups that can use Webauth for content access.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('webauth_admin_groups'),
@@ -153,7 +163,7 @@ function webauth_return() {
 function webauth_theme($existing, $type, $theme, $path) {
   return array(
     'webauth_htaccess' => array(
-      'arguments' => array('groups' => NULL),
+      'arguments' => array('groups' => NULL, 'require_valid_user' => NULL, 'users' => NULL, 'rewrite_url' => NULL),
       'template' => 'webauth_htaccess',
     ),
   );
@@ -163,7 +173,11 @@ function webauth_theme($existing, $type, $theme, $path) {
  * Implementation of hook_form_alter().
  */
 function webauth_form_alter(&$form, &$form_state, $form_id) {
-  global $user, $base_url;
+  global $user, $base_url, $wa_session;
+
+  if (!$wa_session) {
+    $wa_session = new WebAuthSession();
+  }
   
   switch ($form_id) {
     case 'user_profile_form':
@@ -190,14 +204,10 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
         );
       }
 
-      // build a link to wa_login.
-      // added double quotes to webauth link - Lance Simms 8/13/08
+      // Build a link to wa_login.
       $secure_base_url = str_replace('http:', 'https:', $base_url);
-      $webauth_login = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
-      $wa_url = l(variable_get('webauth_link_text','SUNetID'), $webauth_login, 
-                  array('query' => array('destination' => $_GET['q']),
-                        'base_url' => $secure_base_url,
-                        'absolute' => TRUE));
+      $webauth_login = $wa_session->getLoginUrl($_GET['q']);
+      $wa_url = l(variable_get('webauth_link_text','SUNetID'), $webauth_login);
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">',  // make it themable
         '#value' => $wa_url,
@@ -307,7 +317,15 @@ function webauth_login_validate($form, &$form_state) {
  * Function to write out our .htaccess file.
  */
 function webauth_write_htaccess() {
+  global $wa_session;
+
+  if (!$wa_session) {
+    $wa_session = new WebAuthSession();
+  }
+
   $groups = array();
+  $user_list = '';
+  $rewrite_url = '';
   
   // Get all the available groups
   $result = db_query("SELECT DISTINCT(wa_group) AS `group` FROM {webauth_roles} WHERE rid > 2");
@@ -315,8 +333,22 @@ function webauth_write_htaccess() {
     $groups[] = $group;
   }
   
+  $users = explode("\n", variable_get('webauth_require_users', ''));
+  foreach ($users as $u) {
+    $user_list .= trim($u) . ' ';
+  }
+
+  
+  if (!variable_get('clean_url', 0)) {
+    $path = $wa_session->getLoginUrl();
+    $new_path = base_path() . '?q=' . variable_get('webauth_path', conf_path() . '/webauth') . '/login';
+    $rewrite_url  = "RewriteEngine on\n";
+    $rewrite_url .= "RewriteCond %{REQUEST_FILENAME} !-f\n";
+    $rewrite_url = 'RewriteRule login(.*)$' . $new_path . '$1 [L,R=301]';    
+  }
+
   // Theme contents of the .htaccess file.
-  $htaccess_file = theme('webauth_htaccess', $groups);
+  $htaccess_file = theme('webauth_htaccess', $groups, variable_get('webauth_require_valid_user', 0), $user_list, $rewrite_url);
   
   // Get the path or create it inside the files dir.
   $webauth_path = variable_get('webauth_path', conf_path() . '/webauth');
