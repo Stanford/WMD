@@ -74,7 +74,7 @@ class WebAuthSession {
   public function __construct() {
     // Initialize the object and populate the headers.
     $this->__init();
-    
+
     // Check for WebAuth AT Cookie.
     $this->getAtCookie();
     
@@ -95,6 +95,7 @@ class WebAuthSession {
     $this->name = session_name();
     
     $this->sid = session_id();
+    
     
     // Set our authentication redirect URL.
     $this->makeAuthUrl();
@@ -117,23 +118,23 @@ class WebAuthSession {
    * @param bool $httpOnly
    */
   public function writeCookie($name, $value) {
-  	// see if we've already made this cookie request
-  	static $cookieRequests = array();
+    // see if we've already made this cookie request
+    static $cookieRequests = array();
   	
-  	if (isset($cookieRequests[$name]) && $cookieRequests[$name] === $value) {
-  		return; // request already made
-  	} 
-  	else {
-  		$cookieRequests[$name] = $value; // store it for testing
-  	}
+    if (isset($cookieRequests[$name]) && $cookieRequests[$name] === $value) {
+      return; // request already made
+    } 
+    else {
+      $cookieRequests[$name] = $value; // store it for testing
+    }
 
-  	// write a cookie to the browser - check for PHP version to see whether to include $httpOnly value
-  	if (version_compare(PHP_VERSION,'5.2.0') === -1) {
-  		setcookie($name, $value, 0, '/', $this->domain, TRUE);
-  	} 
-  	else {
-  		setcookie($name, $value, 0, '/', $this->domain, TRUE, TRUE);
-  	}
+    // write a cookie to the browser - check for PHP version to see whether to include $httpOnly value
+    if (version_compare(PHP_VERSION,'5.2.0') === -1) {
+      setcookie($name, $value, 0, '/', $this->domain, TRUE);
+    } 
+    else {
+      setcookie($name, $value, 0, '/', $this->domain, TRUE, TRUE);
+    }
   }
   
   public function getSessionName() {
@@ -153,7 +154,10 @@ class WebAuthSession {
     }
   }
   
-  public function getReturnUrl() {
+  public function getReturnUrl($clear = FALSE) {
+    if ($clear) {
+      unset($_SESSION['wa_return_url']);
+    }
     return $this->returnUrl;
   }
 
@@ -163,9 +167,6 @@ class WebAuthSession {
     }
   }
 
-  public function sessionStart() {
-  }
-  
   public function loadSessionData() {
     if (isset($_SESSION['wa_session_data'])) {
       $this->data = $_SESSION['wa_session_data'];  
@@ -182,12 +183,6 @@ class WebAuthSession {
         }
       }
       $this->writeSessionData();
-    }
-    if (isset($_SESSION['wa_return_url'])) {
-      $this->returnUrl = $_SESSION['wa_return_url']['path'] . '?' . $_SESSION['wa_return_url']['query'];
-    }
-    else {
-      $this->returnUrl = variable_get('webauth_destination', 'user');   
     }
   }
   
@@ -217,66 +212,82 @@ class WebAuthSession {
   public function getAtCookie() {
     if ($_COOKIE['webauth_at']) {
       $this->atCookie = $_COOKIE['webauth_at'];
-  	} 
+    } 
   }
   
   public function getWeblogin() {
-    if (!$this->isLoggedIn) {
-      header("Location: " . $this->authUrl);
+    if (!$this->isLoggedIn()) {
+      print_r($this);die('here');
+      $redirect = $this->returnUrl ? '?destination=' . $this->returnUrl : '';
+      header("Location: " . $this->authUrl . $redirect);
     }
   }
-  
+
+  public function makeReturnUrl() {
+    // Figure out our return destination and save to a cookie for later consumption
+    //$returnDest = $_SESSION['wa_return_url']['path'];
+    $returnDest = '';
+    if (empty($returnDest)) {
+      $wa_dest = trim(variable_get('webauth_destination', 'user'));
+      if (isset($_GET['destination']) && strcmp($_GET['destination'], 'admin') !== TRUE) {
+        $returnDest = $_GET['destination'];
+      } 
+      elseif (isset($wa_dest)) {
+        $returnDest = $wa_dest;
+      } 
+      elseif (isset($_GET['q']) && strcmp($_GET['q'], 'user/login') != 0) {
+        $returnDest = $_GET['q'];
+      }
+      //$_SESSION['wa_return_url']['path'] = $returnDest;
+    }
+
+    // Save query for later use.
+    //$query = $_SESSION['wa_return_url']['query'];
+    $query = '';
+    if (empty($query)) {
+      foreach ($_GET as $key => $value) {
+        if ($key != 'q') {
+          if (strlen($newquery) > 0) {
+            $query .= '&'; 
+          }
+          $query .= $key . '=' . drupal_urlencode($value);
+        }
+      }
+    }
+    $this->returnUrl  = $returnDest;
+    $this->returnUrl .= !empty($query) ? $query : '';
+    die($this->returnUrl);
+  }
+  	
   public function makeAuthUrl() {
-  	// Figure out our return destination and save to a cookie for later consumption
-  	$returnDest = '';
-  	$wa_dest = trim(variable_get('webauth_destination',''));
-  	if (isset($_REQUEST['destination']) && strcmp($_REQUEST['destination'], 'admin') !== FALSE) {
-  		$returnDest = $_REQUEST['destination'];
-  	} 
-  	elseif ($forceNode != NULL) {
-  		$returnDest = $forceNode;
-  	} 
-  	elseif (strlen($wa_dest) > 0) {
-  		$returnDest = $wa_dest;
-  	} 
-  	elseif (isset($_REQUEST['q']) && strcmp($_REQUEST['q'], 'user/login') != 0) {
-  		$returnDest = $_GET['q'];
-  	}
-  	
-  	// Save query for later use.
-  	$query = '';
-  	foreach ($_GET as $key => $value) {
-  		if (strlen($newquery) > 0) {
-        $query .= '&'; 
-  		}
-  		$query .= $key . '=' . drupal_urlencode($value);
-  	}
-  	
-  	// Save the return url
-  	$_SESSION['wa_return_url'] = array(
-  	  'path' => $returnDest,
-  	  'query' => $query,
-  	);
-  	
-  	// Create auth URL.
-    $this->authUrl = $this->getLoginUrl($returnDest);
+    // Create auth URL.
+    $this->authUrl = $this->getLoginUrl();
   }
   
-  public function getLoginUrl($destination) {
+  public function getLoginUrl() {
+    // Make sure we create a return url before we make a login url.
+    $this->makeReturnUrl();
+
+    // This is a fix for non-clean urls.  Need to provide a link to the full
+    // path so that we hit the webauth dir. That dir will redirect to proper
+    // non-clean path after authentication via webauth.
     if (!variable_get('clean_url', FALSE)) {
       $return = 'https://' . $_SERVER['SERVER_NAME'] . base_path() . variable_get('webauth_path', conf_path() . '/webauth') 
-                . '/login?destination=' . $destination;
+                . '/login';
+      if (isset($this->returnUrl)) {
+        $return .= '?destination=' . $this->returnUrl;
+      }
     }
     else {
       $return = url(variable_get('webauth_path', conf_path() . '/webauth') . '/login', 
-                    array('absolute' => TRUE, 'query' => array('destination' => $destination)));
+                    array('absolute' => TRUE, 'query' => array('destination' => $this->returnUrl)));
     }
     return $return;
   }
   
   public function getHeaderData() {
     $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
-    $sock = fsockopen('ssl://' . $url['host'] , 443, $errno, $errstr, 10);
+    $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
   	if (!$sock) {
   		drupal_set_message('Unable to authenticate because of socket error: '.$errstr,'error');
   		return FALSE;
@@ -301,7 +312,6 @@ class WebAuthSession {
 
   	$headers = explode("\r\n", $this->returnData['headers']);
     $status = (bool) (strpos($headers[0], 'HTTP/1.1 200 OK') !== FALSE);
-    
     if ($status) {
       $this->loggedIn = TRUE;
     	foreach ($headers as $header) {

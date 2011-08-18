@@ -4,8 +4,11 @@ AuthType WebAuth
 WebAuthLdapAttribute displayName
 WebAuthLdapAttribute suAffiliation
 
+<?php if ($rewrite_url): ?>
 RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
 <?php print $rewrite_url; ?>
+<?php endif; ?>
 
 # Auto-generated below this line. Changes will be overwritten.
 <?php if ($require_valid_user): ?>

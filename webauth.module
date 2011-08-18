@@ -39,7 +39,7 @@ function webauth_init() {
   }
 	
   // Start new WebAuthSession.
-  if (!$is_return_url) {
+  if (!$user->uid && !$is_return_url) {
     $wa_session = new WebAuthSession();
     if (!$wa_session->isValidSession()) {
       user_logout();
@@ -116,13 +116,11 @@ function webauth_error_page() {
     $wa_session = new WebAuthSession();
   }
   if ($user->uid) {
-    die('uphere');
     drupal_goto(variable_get('webauth_403', ''));
   }
   else {
     //unset($_SESSION['wa_return_url']['query']);
     //header('HTTP/1.1 200 OK');
-    $_REQUEST['destination'] = $_GET['q'];
     $wa_session->getWeblogin();
   }
 }
@@ -132,9 +130,9 @@ function webauth_error_page() {
  */
 function webauth_return() {
   global $wa_session, $user;
-  
-  $wa_session = new WebAuthSession();
-  //print_r($wa_session);
+  if (!$wa_session) {
+    $wa_session = new WebAuthSession();
+  }
 
   if (!$user->uid) {
     if ($wa_session->isValidSession()) {
@@ -145,16 +143,19 @@ function webauth_return() {
       drupal_execute('user_login', $form_state);
     }
     else {
-      drupal_set_message(print_r($wa_session, TRUE));
-      $wa_session->getWeblogin();
+      return $wa_session->getWeblogin();
     }
   }
   
   if (!$wa_session->isValidSession()) {
     drupal_set_message('Unknown error occurred.');
   }
-  
-  drupal_goto($wa_session->getReturnUrl());
+  $return = $wa_session->getReturnUrl(TRUE);
+  $login = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
+  if (substr($return, 0, strlen($login)) == $login) {
+    $return = '';
+  }
+  drupal_goto($return);
 }
 
 /**
@@ -342,9 +343,7 @@ function webauth_write_htaccess() {
   if (!variable_get('clean_url', 0)) {
     $path = $wa_session->getLoginUrl();
     $new_path = base_path() . '?q=' . variable_get('webauth_path', conf_path() . '/webauth') . '/login';
-    $rewrite_url  = "RewriteEngine on\n";
-    $rewrite_url .= "RewriteCond %{REQUEST_FILENAME} !-f\n";
-    $rewrite_url = 'RewriteRule login(.*)$' . $new_path . '$1 [L,R=301]';    
+    $rewrite_url .= 'RewriteRule login(.*)$ ' . $new_path . '$1 [L,R=301]';    
   }
 
   // Theme contents of the .htaccess file.
