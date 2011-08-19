@@ -282,7 +282,13 @@ class WebAuthSession {
   }
   
   public function getHeaderData() {
-    $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
+    if (variable_get('clean_url', FALSE)) {
+      $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
+    }
+    else {
+      $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
+      $url['path'] = base_path() . variable_get('webauth_path', conf_path() . '/webauth') . '/check.php';
+    }
     $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
   	if (!$sock) {
   		drupal_set_message('Unable to authenticate because of socket error: '.$errstr,'error');
@@ -302,7 +308,6 @@ class WebAuthSession {
   	  $return .= fread($sock, 8192);
   	}
   	fclose($sock);
-  	
   	list($this->returnData['headers'], 
   	     $this->returnData['body']) = explode("\r\n\r\n", $return);
 
