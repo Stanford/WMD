@@ -115,13 +115,12 @@ function webauth_error_page() {
   if (!$wa_session) {
     $wa_session = new WebAuthSession();
   }
-  if ($user->uid) {
-    drupal_goto(variable_get('webauth_403', ''));
-  }
-  else {
-    //unset($_SESSION['wa_return_url']['query']);
-    //header('HTTP/1.1 200 OK');
-    $wa_session->getWeblogin();
+  if (!$user->uid) {
+    if (isset($_SERVER['REDIRECT_URL'])) {
+      $redirect = str_replace(base_path(), '', $_SERVER['REDIRECT_URL']);
+      //header('HTTP/1.1 200 OK');
+      $wa_session->getWeblogin($redirect);
+    }
   }
 }
 

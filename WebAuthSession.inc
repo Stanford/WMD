@@ -202,7 +202,7 @@ class WebAuthSession {
   }
   
   public function isLoggedIn() {
-    return $this->loggedIn;
+    return (bool) $this->loggedIn;
   }
   
   public function getLdapGroups() {
@@ -215,18 +215,17 @@ class WebAuthSession {
     } 
   }
   
-  public function getWeblogin() {
-    if (!$this->isLoggedIn()) {
-      print_r($this);die('here');
-      $redirect = $this->returnUrl ? '?destination=' . $this->returnUrl : '';
-      header("Location: " . $this->authUrl . $redirect);
+  public function getWeblogin($redirect = NULL) {
+    if (!empty($redirect)) {
+      $this->makeAuthUrl($redirect);
     }
+    header("Location: " . $this->authUrl);
+    exit();
   }
 
-  public function makeReturnUrl() {
+  public function makeReturnUrl($url = NULL) {
     // Figure out our return destination and save to a cookie for later consumption
-    //$returnDest = $_SESSION['wa_return_url']['path'];
-    $returnDest = '';
+    $returnDest = $url;
     if (empty($returnDest)) {
       $wa_dest = trim(variable_get('webauth_destination', 'user'));
       if (isset($_GET['destination']) && strcmp($_GET['destination'], 'admin') !== TRUE) {
@@ -238,11 +237,9 @@ class WebAuthSession {
       elseif (isset($_GET['q']) && strcmp($_GET['q'], 'user/login') != 0) {
         $returnDest = $_GET['q'];
       }
-      //$_SESSION['wa_return_url']['path'] = $returnDest;
     }
 
     // Save query for later use.
-    //$query = $_SESSION['wa_return_url']['query'];
     $query = '';
     if (empty($query)) {
       foreach ($_GET as $key => $value) {
@@ -256,17 +253,16 @@ class WebAuthSession {
     }
     $this->returnUrl  = $returnDest;
     $this->returnUrl .= !empty($query) ? $query : '';
-    die($this->returnUrl);
   }
   	
-  public function makeAuthUrl() {
+  public function makeAuthUrl($redirect = NULL) {
     // Create auth URL.
-    $this->authUrl = $this->getLoginUrl();
+    $this->authUrl = $this->getLoginUrl($redirect);
   }
   
-  public function getLoginUrl() {
+  public function getLoginUrl($url = NULL) {
     // Make sure we create a return url before we make a login url.
-    $this->makeReturnUrl();
+    $this->makeReturnUrl($url);
 
     // This is a fix for non-clean urls.  Need to provide a link to the full
     // path so that we hit the webauth dir. That dir will redirect to proper
