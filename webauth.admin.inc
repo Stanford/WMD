@@ -192,16 +192,16 @@ function webauth_admin_users(&$form_state) {
  * Validate that we're getting valid input in our .htaccess file.
  */
 function webauth_admin_users_validate($form, &$form_state) {
-  $userlines = explode("\n", $form_state['values']['webauth_require_users']);
-  $grouplines = explode("\n", $form_state['values']['webauth_require_privgroups']);
+  $userlines = explode("\n", chop($form_state['values']['webauth_require_users']));
+  $grouplines = explode("\n", chop($form_state['values']['webauth_require_privgroups']));
 
   foreach($userlines as $line) {
-    if (preg_match("/^[\w\d]+$/", chop($line)) != 1) {
+    if (preg_match("/^[\w\d-_]+$/", chop($line)) != 1) {
       form_set_error('webauth_require_users', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
     }
   }
   foreach($grouplines as $line) {
-    if (preg_match("/^[\w\d]+:[\w\d]+$/", chop($line)) != 1) {
+    if (preg_match("/^[\w\d~]+:[\w\d-_]+$/", chop($line)) != 1) {
       form_set_error('webauth_require_privgroups', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
     }
   }
