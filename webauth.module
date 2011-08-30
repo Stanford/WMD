@@ -313,6 +313,7 @@ function webauth_grant_roles(&$edit, &$account) {
                 unset($new['roles'][$role->rid]);
                 unset($data['webauth_assigned_roles'][$role->rid]);
                 db_query("DELETE * FROM {webauth_roles_history} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
+                db_query("DELETE * FROM {users_roles} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
           }
         }
       }
