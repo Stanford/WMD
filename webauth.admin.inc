@@ -196,12 +196,14 @@ function webauth_admin_users_validate($form, &$form_state) {
   $grouplines = explode("\n", chop($form_state['values']['webauth_require_privgroups']));
 
   foreach($userlines as $line) {
-    if (preg_match("/^[\w\d-_]+$/", chop($line)) != 1) {
+    $line = chop($line);
+    if ($line != '' && preg_match("/^[\w\d-_]+$/", $line) != 1) {
       form_set_error('webauth_require_users', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
     }
   }
   foreach($grouplines as $line) {
-    if (preg_match("/^[\w\d~]+:[\w\d-_]+$/", chop($line)) != 1) {
+    $line = chop($line);
+    if ($line != '' && preg_match("/^[\w\d~]+:[\w\d-_]+$/", $line) != 1) {
       form_set_error('webauth_require_privgroups', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
     }
   }
