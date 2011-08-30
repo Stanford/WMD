@@ -305,7 +305,7 @@ function webauth_grant_roles(&$edit, &$account) {
     // Close out any groups they shouldn't have access to.
     $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
     while ($role = db_fetch_object($result)) {
-      if (!isset($current($role->rid))) {
+      if (!isset($current[$role->rid])) {
         unset($data['webauth_assigned_roles'][$role->rid]);
         unset($new['roles'][$role->rid]);
         db_query("DELETE * FROM {webauth_roles_history} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
