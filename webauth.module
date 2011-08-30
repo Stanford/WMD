@@ -347,15 +347,22 @@ function webauth_write_htaccess() {
     $groups[] = $group;
   }
 
+  $user_list = array();
   $users = explode("\n", variable_get('webauth_require_users', ''));
   foreach ($users as $u) {
-    $user_list .= trim($u) . ' ';
+    $u = trim($u);
+    if ($u != '') {
+      $user_list[] = $u;
+    }
   }
 
   $privgroup_list = array();
   $privgroups = explode("\n", variable_get('webauth_require_privgroups', ''));
   foreach ($privgroups as $p) {
-    $privgroup_list[] = trim($p);
+    $p = trim($p);
+    if ($p != '') {
+      $privgroup_list[] = $p;
+    }
   }
 
 
