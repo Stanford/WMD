@@ -12,11 +12,16 @@ RewriteCond %{REQUEST_FILENAME} !-f
 
 # Auto-generated below this line. Changes will be overwritten.
 <?php if ($require_valid_user): ?>
-  require valid-user
+require valid-user
 <?php else: ?>
-  require user <?php print $users; ?> 
+require user <?php print $users; ?>
+
+<?php foreach($privgroups as $group): ?>
+require privgroup <?php print $group; ?>
+
+<?php endforeach; ?>
 <?php endif; ?>
 
 <?php foreach ($groups as $group): ?>
-  WebAuthLdapPrivgroup <?php print $group . "\n"; ?>
+WebAuthLdapPrivgroup <?php print $group . "\n"; ?>
 <?php endforeach; ?>

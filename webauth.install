@@ -7,22 +7,22 @@
 function webauth_install() {
   require_once(drupal_get_path('module', 'user') . "/user.admin.inc");
   require_once(drupal_get_path('module', 'webauth') . "/webauth.module");
-  
+
   // Install our requisite tables.
   drupal_install_schema('webauth');
-  
+
   // Setup our webauth data path
   $webauth_path = conf_path() . '/webauth';
   variable_set('webauth_path', $webauth_path);
 
   // Add default roles
   $roles = array(
-    '' => 'SUNet User', 
-    'stanford:student' => 'Stanford Student', 
-    'stanford:staff' => 'Stanford Staff', 
+    '' => 'SUNet User',
+    'stanford:student' => 'Stanford Student',
+    'stanford:staff' => 'Stanford Staff',
     'stanford:faculty' => 'Stanford Faculty',
   );
-  
+
   foreach ($roles as $role) {
     $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $role));
     if (!$role_exists) {
@@ -30,7 +30,7 @@ function webauth_install() {
       drupal_set_message("Added Role $role");
     }
   }
-  
+
   // Map webauth roles to new roles
   foreach ($roles as $group => $role) {
     $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", $role));
@@ -44,10 +44,10 @@ function webauth_install() {
       }
     }
   }
-  
+
   $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", 'SUNet User'));
   variable_set('webauth_default_role', $rid);
-  
+
   // Write htaccess file.
   webauth_write_htaccess();
   copy(drupal_get_path('module', 'webauth') . '/default/.htaccess', variable_get('webauth_path', '') . '/.htaccess');
@@ -57,6 +57,10 @@ function webauth_install() {
  * Implementation of hook_uninstall().
  */
 function webauth_uninstall() {
+  $result = db_query("SELECT * FROM {webauth_roles_history}");
+  foreach ($result as $wmd) {
+    db_query("DELETE FROM {users_roles} WHERE uid = %d and rid = %d", $wmd->uid, $wmd->rid);
+  }
   drupal_uninstall_schema('webauth');
   variable_del('webauth_path');
 }
@@ -66,7 +70,7 @@ function webauth_uninstall() {
  */
 function webauth_schema() {
   $schema = array();
-  
+
   $schema['webauth_roles'] = array(
     'description' => 'Mapping of webauth roles to drupal roles.',
     'fields' => array(
@@ -97,9 +101,36 @@ function webauth_schema() {
     ),
     'primary key' => array('warid'),
   );
-    
+
+  $schema['webauth_roles_history'] = array(
+    'description' => 'Mapping of whether webauth assigned a role or not..',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The Drupal user id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'rid' => array(
+        'description' => 'The Drupal role id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+   'indexes' => array(
+      'user_role' => array('uid', 'rid'),
+    ),
+  );
+
   return $schema;
 }
 
+function webauth_update_6300() {
+  $ret = array();
+  $schema = drupal_get_schema_unprocessed('webauth');
+  _drupal_initialize_schema('webauth', $schema);
+  db_create_table($ret, 'webauth_roles_history', $schema['webauth_roles_history']);
 
-
+  return $ret;
+}

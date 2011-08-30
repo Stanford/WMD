@@ -2,12 +2,12 @@
 /**
  * webauth.admin.inc
  */
- 
+
 function webauth_admin_settings() {
 	if (variable_get('webauth_nossl', FALSE)) {
 	  return;
 	}
-	
+
 	$form['webauth_domain'] = array(
 		'#type' => 'textfield',
 		'#title' => t('Webauth Domain Name'),
@@ -15,13 +15,13 @@ function webauth_admin_settings() {
 		'#default_value' => variable_get('webauth_domain','stanford.edu'),
 		'#description' => t('The domain name to be appended to username if email address is missing.')
 	);
-	
+
 	$result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
 	$roles = array();
  	while ($role = db_fetch_object($result)) {
  	  $roles[$role->rid] = $role->name;
  	}
-  
+
   $form['webauth_default_role'] = array(
     '#type' => 'select',
     '#title' => t('Default Webauth User Role'),
@@ -52,7 +52,7 @@ function webauth_admin_settings() {
 		'#default_value' => variable_get('webauth_destination', ''),
 		'#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.')
 	);
-	
+
 	$defValue3 = variable_get('webauth_autologin', 0);
 	$form['webauth_autologin'] = array(
 		'#type' => 'radios',
@@ -61,7 +61,7 @@ function webauth_admin_settings() {
 		'#options' => array(0 => t('Disable WebAuth Auto-Login'), 1 => t('Enable Webauth Auto-Login')),
 		'#description' => t('Enable or Disable WebAuth Auto-Login feature. When enabled, option for auto-login appears on node-edit page.'),
 	);
-  
+
 	return system_settings_form($form);
 }
 
@@ -85,23 +85,23 @@ function webauth_admin_groups(&$form_state) {
     '#type' => 'select',
     '#options' => $roles,
   );
-  
+
   $form['new_group'] = array(
     '#name' => 'new_group',
     '#type' => 'textfield',
     '#default_value' => '',
   );
-  
+
   $form['new_submit'] = array(
     '#name' => 'new_submit',
     '#type' => 'submit',
     '#value' => t('Add Mapping'),
   );
-  
+
   if (!$submitted) {
-    $table[] = array(drupal_render($form['new_rid']), drupal_render($form['new_group']), drupal_render($form['new_submit']));  
+    $table[] = array(drupal_render($form['new_rid']), drupal_render($form['new_group']), drupal_render($form['new_submit']));
   }
-	
+
   $result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > 2");
   while ($group = db_fetch_object($result)) {
     $button_id = 'remove_warid_' . $group->warid;
@@ -115,7 +115,7 @@ function webauth_admin_groups(&$form_state) {
     }
     $table[] = $row;
   }
-	
+
   $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
   $form['output'] = array(
     '#value' => theme('table', $header, $table),
@@ -147,7 +147,7 @@ function webauth_admin_groups_submit($form, &$form_state) {
     db_query("DELETE FROM {webauth_roles} WHERE warid = %d", $warid);
     drupal_set_message("Removed Webauth mapping from table. [ID: $warid]");
   }
-  
+
   // Need to update the .htaccess file.
   webauth_write_htaccess();
 }
@@ -158,7 +158,7 @@ function webauth_admin_users(&$form_state) {
   }
 
   $form = array();
- 
+
   $form['webauth_require_valid_user'] = array(
     '#type' => 'checkbox',
     '#title' => t('Require ANY valid user'),
@@ -173,14 +173,43 @@ function webauth_admin_users(&$form_state) {
     '#default_value' => variable_get('webauth_require_users', ''),
   );
 
+  $form['webauth_require_privgroups'] = array(
+    '#type' => 'textarea',
+    '#title' => t('SUNet privgroup permitted access'),
+    '#description' => t('Enter one privgroup (e.g."stanford:staff") per line.'),
+    '#default_value' => variable_get('webauth_require_privgroups', ''),
+  );
+
   $form = system_settings_form($form);
 
+  $form['#validata'][] = 'webauth_admin_users_validate';
   $form['#submit'][] = 'webauth_admin_users_submit';
 
   return $form;
 }
 
+/**
+ * Validate that we're getting valid input in our .htaccess file.
+ */
+function webauth_admin_users_validate($form, &$form_state) {
+  $userlines = explode("\n", $form_state['values']['webauth_require_users']);
+  $grouplines = explode("\n", $form_state['values']['webauth_require_privgroups']);
+
+  foreach($userlines as $line) {
+    if (preg_match("/^[\w\d]+$/", chop($line)) != 1) {
+      form_set_error('webauth_require_users', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
+    }
+  }
+  foreach($grouplines as $line) {
+    if (preg_match("/^[\w\d]+:[\w\d]+$/", chop($line)) != 1) {
+      form_set_error('webauth_require_privgroups', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
+    }
+  }
+
+}
+
+
 function webauth_admin_users_submit($form, &$form_state) {
   // Need to update the .htaccess file.
-  webauth_write_htaccess(); 
+  webauth_write_htaccess();
 }
