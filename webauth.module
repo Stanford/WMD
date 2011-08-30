@@ -297,7 +297,7 @@ function webauth_grant_roles(&$edit, &$account) {
       if (in_array($role->group, $groups)) {
         $new['roles'][$role->rid] = $role->name;
         $data['webauth_assigned_roles'][$role->rid] = $role->name;
-        $current[] = $role->rid;
+        $current[$role->rid] = $role->rid;
         db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
         db_query("INSERT INTO {webauth_roles_history} (uid, rid) VALUES (%d, %d)", $account->uid, $role->rid);
       }
