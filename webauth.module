@@ -7,7 +7,6 @@
  */
 
 define('WEBAUTH_DOMAIN', 'stanford.edu');
-
 include_once(dirname(__FILE__) . '/WebAuthSession.inc');
 
 /**
@@ -25,7 +24,7 @@ function webauth_boot() {
   elseif ($_COOKIE["WMDsecureLogin"]) {
     // Redirect so we can get secure session.
     global $base_url, $base_path;
-    $url = $base_url . $base_path . '?q=' . $_GET['q'];
+    $url = $base_url . '?q=' . $_GET['q'];
     $url = str_replace('http://', 'https://', $url);
     header("Location: $url");
   }
