@@ -121,6 +121,16 @@ function webauth_admin_groups_submit($form, &$form_state) {
     $warid = drupal_substr($form_state['clicked_button']['#parents'][0], 13);
     db_query("DELETE FROM {webauth_roles} WHERE warid = %d", $warid);
     drupal_set_message("Removed WebAuth mapping from table. [ID: $warid]");
+    // Clear out any roles that were granted as a result.
+    $result = db_query("SELECT * FROM {webauth_roles_history} WHERE warid = %d", $warid);
+    while ($history = db_fetch_object($result)) {
+      // See if there's another mapping for this role.
+      if (!db_result(db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d AND rid = %d AND warid != %d", $history->uid, $history->rid, $warid))) {
+        // If not, nix the users_roles value so they lose privileges immediately.
+        db_query("DELETE FROM {users_roles} WHERE uid = %d AND rid = %d", $history->uid, $history->rid);
+      }
+    }
+    db_query("DELETE FROM {webauth_roles_history} WHERE warid = %d", $warid);
   }
 
   // Need to update the .htaccess file.
