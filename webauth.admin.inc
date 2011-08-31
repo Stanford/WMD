@@ -14,14 +14,6 @@ function webauth_admin_settings() {
  	  $roles[$role->rid] = $role->name;
  	}
 
-  $form['webauth_default_role'] = array(
-    '#type' => 'select',
-    '#title' => t('Default WebAuth User Role'),
-    '#description' => t('This is the default role that the user is added to upon successful login / registration.'),
-    '#options' => $roles,
-    '#default_value' => variable_get('webauth_default_role', ''),
-  );
-
 	$defValue = variable_get('webauth_allow_local', 1);
 	$form['webauth_allow_local'] = array(
 		'#type' => 'radios',
