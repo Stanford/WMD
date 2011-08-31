@@ -54,7 +54,7 @@ class WebAuthSession {
   protected $returnData = array();
 
   /**
-   * Webauth AT Cookie.
+   * WebAuth AT Cookie.
    */
   protected $atCookie;
 
