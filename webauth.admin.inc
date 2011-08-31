@@ -10,7 +10,7 @@ function webauth_admin_settings() {
 
 	$form['webauth_domain'] = array(
 		'#type' => 'textfield',
-		'#title' => t('Webauth Domain Name'),
+		'#title' => t('WebAuth Domain Name'),
 		'#size' => 80, '#maxlength' =>255,
 		'#default_value' => variable_get('webauth_domain','stanford.edu'),
 		'#description' => t('The domain name to be appended to username if email address is missing.')
@@ -24,7 +24,7 @@ function webauth_admin_settings() {
 
   $form['webauth_default_role'] = array(
     '#type' => 'select',
-    '#title' => t('Default Webauth User Role'),
+    '#title' => t('Default WebAuth User Role'),
     '#description' => t('This is the default role that the user is added to upon successful login / registration.'),
     '#options' => $roles,
     '#default_value' => variable_get('webauth_default_role', ''),
@@ -58,7 +58,7 @@ function webauth_admin_settings() {
 		'#type' => 'radios',
 		'#title' => t('WebAuth Auto-Login'),
 		'#default_value' => $defValue3,
-		'#options' => array(0 => t('Disable WebAuth Auto-Login'), 1 => t('Enable Webauth Auto-Login')),
+		'#options' => array(0 => t('Disable WebAuth Auto-Login'), 1 => t('Enable WebAuth Auto-Login')),
 		'#description' => t('Enable or Disable WebAuth Auto-Login feature. When enabled, option for auto-login appears on node-edit page.'),
 	);
 
@@ -139,13 +139,13 @@ function webauth_admin_groups_submit($form, &$form_state) {
     // Add mapping
     db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d,'%s')", $form_state['values']['new_rid'], $form_state['values']['new_group']);
     $role_name = db_result(db_query("SELECT name FROM role WHERE rid = %d", $form_state['values']['new_rid']));
-    drupal_set_message("Added new Webauth mapping: $role_name => " . $form_state['values']['new_group']);
+    drupal_set_message("Added new WebAuth mapping: $role_name => " . $form_state['values']['new_group']);
   }
   elseif ($form_state['clicked_button']['#value'] == t('Remove Mapping')) {
     // Remove mapping
     $warid = drupal_substr($form_state['clicked_button']['#parents'][0], 13);
     db_query("DELETE FROM {webauth_roles} WHERE warid = %d", $warid);
-    drupal_set_message("Removed Webauth mapping from table. [ID: $warid]");
+    drupal_set_message("Removed WebAuth mapping from table. [ID: $warid]");
   }
 
   // Need to update the .htaccess file.
