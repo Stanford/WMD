@@ -101,7 +101,7 @@ function webauth_menu() {
   );
 
   $items['admin/settings/webauth/groups'] = array(
-    'title' => 'Groups',
+    'title' => 'Role Mappings',
     'description' => 'Edit the groups that can use WebAuth for content access.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('webauth_admin_groups'),
