@@ -14,7 +14,10 @@ RewriteCond %{REQUEST_FILENAME} !-f
 <?php if ($require_valid_user): ?>
 require valid-user
 <?php else: ?>
-require user <?php print $users; ?>
+<?php foreach($users as $u): ?>
+require user <?php print $u; ?>
+
+<?php endforeach; ?>
 
 <?php foreach($privgroups as $group): ?>
 require privgroup <?php print $group; ?>

@@ -208,6 +208,10 @@ function webauth_admin_users_validate($form, &$form_state) {
     }
   }
 
+  if (trim($form_state['values']['webauth_require_users']) == '' && trim($form_state['values']['webauth_require_privgroups']) == '' && $form_state['values']['webauth_require_valid_user'] == FALSE) {
+    form_set_error('webauth_require_valid_user', t('You must specify some valid means for accessing the site.'));
+  }
+
 }
 
 
