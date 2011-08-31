@@ -127,8 +127,8 @@ function webauth_schema() {
     'indexes' => array(
       'user_role' => array('uid', 'rid'),
       'uid' => array('uid'),
+      'warid' => array('warid'),
     ),
-    'primary key' => array('warid'),
   );
 
   return $schema;
@@ -150,6 +150,15 @@ function webauth_update_6302() {
   db_query("DELETE FROM {webauth_roles_history} WHERE 1");
   db_add_field($ret, 'webauth_roles_history', 'warid', $schema);
   db_add_primary_key($ret, 'webauth_roles_history', array('warid'));
+
+  return $ret;
+}
+
+function webauth_update_6303() {
+  $ret = array();
+  db_drop_primary_key($ret, 'webauth_roles_history');
+  db_add_index($ret, 'webauth_roles_history', 'uid', array('uid'));
+  db_add_index($ret, 'webauth_roles_history', 'warid', array('warid'));
 
   return $ret;
 }
