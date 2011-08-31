@@ -8,14 +8,6 @@ function webauth_admin_settings() {
 	  return;
 	}
 
-	$form['webauth_domain'] = array(
-		'#type' => 'textfield',
-		'#title' => t('WebAuth Domain Name'),
-		'#size' => 80, '#maxlength' =>255,
-		'#default_value' => variable_get('webauth_domain','stanford.edu'),
-		'#description' => t('The domain name to be appended to username if email address is missing.')
-	);
-
 	$result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
 	$roles = array();
  	while ($role = db_fetch_object($result)) {
