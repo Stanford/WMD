@@ -122,9 +122,14 @@ function webauth_error_page() {
     $wa_session = new WebAuthSession();
   }
   if (!$user->uid) {
-    if (isset($_SERVER['REDIRECT_URL'])) {
+    if (variable_get('clean_url', FALSE) && isset($_SERVER['REDIRECT_URL'])) {
       $redirect = str_replace(base_path(), '', $_SERVER['REDIRECT_URL']);
       //header('HTTP/1.1 200 OK');
+      $wa_session->getWeblogin($redirect);
+    }
+    elseif (isset($_SERVER['REQUEST_URI'])) {
+      $redirect = str_replace(base_path(), '', $_SERVER['REQUEST_URI']);
+      $redirect = str_replace("?q=", '', $redirect);
       $wa_session->getWeblogin($redirect);
     }
   }
@@ -208,6 +213,16 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
           'webauth_login_validate',
           'user_login_final_validate',
         );
+      }
+      // drupal_execute() for user_login comes here, and we can lose our login
+      // redirect context, so if we are on the auth path here, we should stop
+      // altering at this point.
+      //
+      // I don't love this fix, but it's necssary given how the $wa_session
+      // object is constructued at the moment.
+      $path = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
+      if ($_GET['q'] == $path) {
+        return;
       }
 
       // Build a link to wa_login.
