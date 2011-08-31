@@ -89,7 +89,7 @@ function webauth_menu() {
     'weight' => -10,
   );
 
-  $items['admin/settings/webauth/users'] = array(
+  $items['admin/settings/webauth/authorizations'] = array(
     'title' => 'Authorizations',
     'description' => 'Edit the users and groups that are required for access.',
     'page callback' => 'drupal_get_form',
@@ -100,7 +100,7 @@ function webauth_menu() {
     'weight' => 1,
   );
 
-  $items['admin/settings/webauth/groups'] = array(
+  $items['admin/settings/webauth/mappings'] = array(
     'title' => 'Role Mappings',
     'description' => 'Edit the groups that can use WebAuth for content access.',
     'page callback' => 'drupal_get_form',
