@@ -15,11 +15,11 @@ include_once(dirname(__FILE__) . '/WebAuthSession.inc');
  */
 function webauth_boot() {
   if (!empty($_SERVER['HTTPS'])) {
-    global $base_url, $user;
+    global $base_url, $user, $base_path;
     ini_set('session.cookie_secure', 1);
     $base_url = str_replace('http://', 'https://', $base_url);
     if ($user->uid > 0) {
-      setcookie("WMDsecureLogin", 1, time()+3600);
+      setcookie("WMDsecureLogin", 1, time()+3600, $base_path);
     }
   }
   elseif ($_COOKIE["WMDsecureLogin"]) {
