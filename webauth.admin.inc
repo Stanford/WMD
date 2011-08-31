@@ -45,15 +45,6 @@ function webauth_admin_settings() {
 		'#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.')
 	);
 
-	$defValue3 = variable_get('webauth_autologin', 0);
-	$form['webauth_autologin'] = array(
-		'#type' => 'radios',
-		'#title' => t('WebAuth Auto-Login'),
-		'#default_value' => $defValue3,
-		'#options' => array(0 => t('Disable WebAuth Auto-Login'), 1 => t('Enable WebAuth Auto-Login')),
-		'#description' => t('Enable or Disable WebAuth Auto-Login feature. When enabled, option for auto-login appears on node-edit page.'),
-	);
-
 	return system_settings_form($form);
 }
 
