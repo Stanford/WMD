@@ -287,6 +287,9 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       webauth_update_fields($edit, $account);
       webauth_grant_roles($edit, $account);
       break;
+    case 'delete':
+      db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
+      break;
     case 'logout':
       if (isset($_COOKIE['webauth_at'])) {
         //unset($_COOKIE['webauth_at']);
