@@ -11,6 +11,28 @@ define('WEBAUTH_DOMAIN', 'stanford.edu');
 include_once(dirname(__FILE__) . '/WebAuthSession.inc');
 
 /**
+ * Implementation of hook_boot()
+ */
+function webauth_boot() {
+  if (!empty($_SERVER['HTTPS'])) {
+    global $base_url, $user;
+    ini_set('session.cookie_secure', 1);
+    $base_url = str_replace('http://', 'https://', $base_url);
+    if ($user->uid > 0) {
+      setcookie("WMDsecureLogin", 1, time()+3600);
+    }
+  }
+  elseif ($_COOKIE["WMDsecureLogin"]) {
+    // Redirect so we can get secure session.
+    global $base_url, $base_path;
+    $url = $base_url . $base_path . '?q=' . $_GET['q'];
+    $url = str_replace('http://', 'https://', $url);
+    header("Location: $url");
+  }
+}
+
+
+/**
  * Implementation of hook_init().
  */
 function webauth_init() {
@@ -269,6 +291,10 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       if (isset($_COOKIE['webauth_at'])) {
         //unset($_COOKIE['webauth_at']);
         //setcookie('webauth_at', '', time() - 3600, '/');
+      }
+      if (isset($_COOKIE['WMDsecureLogin'])) {
+        unset($_COOKIE['WMDsecureLogin']);
+        setcookie('WMDsecureLogin', '', time() - 3600);
       }
   }
 }
