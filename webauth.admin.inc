@@ -76,6 +76,18 @@ function webauth_admin_groups(&$form_state) {
   if (!$submitted) {
     $table[] = array(drupal_render($form['new_rid']), drupal_render($form['new_group']), drupal_render($form['new_submit']));
   }
+  else {
+    // Keep the UI consistent.
+    $form['new_rid']['#prefix'] = '<table><tr class="odd"><td>';
+    $form['new_rid']['#suffix'] = '</td><td>';
+    $form['new_group']['#suffix'] = '</td><td>';
+    $form['new_submit']['#suffix'] = '</td><td>';
+    $form['cancel'] = array(
+      '#type' => 'markup',
+      '#value' => l(t('Cancel'), 'admin/settings/webauth/mappings'),
+      '#suffix' => '</td></tr></table>',
+    );
+  }
 
   $result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > 2");
   while ($group = db_fetch_object($result)) {
@@ -85,28 +97,28 @@ function webauth_admin_groups(&$form_state) {
       '#type' => 'submit',
       '#value' => t('Remove Mapping'),
     );
-    if (!$submitted) {
-      $row = array($group->name, $group->group, drupal_render($form[$button_id]));
-    }
+    $row = array($group->name, $group->group, drupal_render($form[$button_id]));
     $table[] = $row;
   }
-
-  $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
-  $form['output'] = array(
-    '#value' => theme('table', $header, $table),
-  );
+  if (!$submitted) {
+    $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
+    $form['output'] = array(
+      '#value' => theme('table', $header, $table),
+    );
+  }
 
   return $form;
 }
 
 function webauth_admin_groups_validate($form, &$form_state) {
-  /*
   if ($form_state['clicked_button']['#value'] == t('Add Mapping')) {
-    if (preg_match('/~?[\w_-]+:[\w_\/-]+/', $form_state['values']['new_group']) == 0) {
+    if (preg_match("/^[-_\w\d\~]+:[\w\d-_]+$/", $form_state['values']['new_group']) == 0) {
       form_set_error('new_group', t('There was an error in your group name.  Please make sure you entered it correctly.'));
     }
+    if (db_result(db_query("SELECT * FROM {webauth_roles} WHERE rid = %d AND wa_group = '%s'", $form_state['values']['new_rid'], $form_state['values']['new_group']))) {
+      form_set_error('new_group', t('This webauth group is already mapped to this Drupal role!'));
+    }
   }
-  */
 }
 
 function webauth_admin_groups_submit($form, &$form_state) {
@@ -188,7 +200,7 @@ function webauth_admin_users_validate($form, &$form_state) {
   }
   foreach($grouplines as $line) {
     $line = chop($line);
-    if ($line != '' && preg_match("/^[\w\d~]+:[\w\d-_]+$/", $line) != 1) {
+    if ($line != '' && preg_match("/^[-_\w\d\~]+:[\w\d-_]+$/", $line) != 1) {
       form_set_error('webauth_require_privgroups', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
     }
   }
