@@ -142,23 +142,3 @@ function webauth_update_6300() {
 
   return $ret;
 }
-
-function webauth_update_6302() {
-  $ret = array();
-  $schema = array('type' => 'int', 'not null' => TRUE, 'unsigned' => TRUE, 'description' => 'The role mapping id.');
-  // Refresh the whole history table so we can get primary keys in place.
-  db_query("DELETE FROM {webauth_roles_history} WHERE 1");
-  db_add_field($ret, 'webauth_roles_history', 'warid', $schema);
-  db_add_primary_key($ret, 'webauth_roles_history', array('warid'));
-
-  return $ret;
-}
-
-function webauth_update_6303() {
-  $ret = array();
-  db_drop_primary_key($ret, 'webauth_roles_history');
-  db_add_index($ret, 'webauth_roles_history', 'uid', array('uid'));
-  db_add_index($ret, 'webauth_roles_history', 'warid', array('warid'));
-
-  return $ret;
-}
