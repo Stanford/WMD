@@ -100,12 +100,10 @@ function webauth_admin_groups(&$form_state) {
     $row = array($group->name, $group->group, drupal_render($form[$button_id]));
     $table[] = $row;
   }
-  if (!$submitted) {
-    $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
-    $form['output'] = array(
-      '#value' => theme('table', $header, $table),
-    );
-  }
+  $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
+  $form['output'] = array(
+    '#value' => theme('table', $header, $table),
+  );
 
   return $form;
 }
