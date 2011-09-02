@@ -128,7 +128,7 @@ function webauth_admin_groups_submit($form, &$form_state) {
   }
   elseif ($form_state['clicked_button']['#value'] == t('Remove Mapping')) {
     // Remove mapping
-    $warid = drupal_substr($form_state['clicked_button']['#parents'][0], 13);
+    $warid = drupal_substr($form_state['clicked_button']['#name'], 13);
     db_query("DELETE FROM {webauth_roles} WHERE warid = %d", $warid);
     drupal_set_message("Removed WebAuth mapping from table. [ID: $warid]");
     // Clear out any roles that were granted as a result.
