@@ -143,16 +143,18 @@ function webauth_error_page() {
     $wa_session = new WebAuthSession();
   }
   if (!$user->uid) {
-    if (variable_get('clean_url', FALSE) && isset($_SERVER['REDIRECT_URL'])) {
+    $redirect = NULL;
+    if (trim(variable_get('webauth_destination', '')) != '') {
+      $redirect = trim(variable_get('webauth_destination', ''));
+    }
+    elseif (variable_get('clean_url', FALSE) && isset($_SERVER['REDIRECT_URL'])) {
       $redirect = str_replace(base_path(), '', $_SERVER['REDIRECT_URL']);
-      //header('HTTP/1.1 200 OK');
-      $wa_session->getWeblogin($redirect);
     }
     elseif (isset($_SERVER['REQUEST_URI'])) {
       $redirect = str_replace(base_path(), '', $_SERVER['REQUEST_URI']);
       $redirect = str_replace("?q=", '', $redirect);
-      $wa_session->getWeblogin($redirect);
     }
+    $wa_session->getWeblogin($redirect);
   }
 }
 

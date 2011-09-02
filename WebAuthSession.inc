@@ -225,7 +225,7 @@ class WebAuthSession {
   }
 
   public function makeReturnUrl($url = NULL) {
-    // Figure out our return destination and save to a cookie for later consumption
+    // Figure out our return destination and save to the session for later consumption
     $returnDest = $url;
     if (empty($returnDest)) {
       $wa_dest = trim(variable_get('webauth_destination', 'user'));
