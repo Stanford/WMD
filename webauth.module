@@ -43,9 +43,9 @@ function webauth_init() {
 
   // Setup some variables about forwarding.
   $is_forwarded = (bool) isset($_SERVER['HTTP_X_FORWARDED_HOST']);
-  $has_xhost = (bool) strcmp($_SERVER['HTTP_X_FORWARDED_HOST'],
-                             variable_get('webauth_xhost','')) !== 0;
-  $is_return_url = (bool) $_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login';
+  $has_xhost = (bool) (strcmp($_SERVER['HTTP_X_FORWARDED_HOST'],
+                             variable_get('webauth_xhost','')) !== 0);
+  $is_return_url = (bool) ($_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login');
   $access_denied_page = variable_get('site_403', '');
 
   // Update our access denied page.
@@ -58,13 +58,12 @@ function webauth_init() {
   if ($is_forwarded && !$has_xhost) {
     variable_set('webauth_xhost', $_SERVER['HTTP_X_FORWARDED_HOST']);
   }
-
   // Start new WebAuthSession.
-  if (!$user->uid && !$is_return_url) {
+  if ($user->uid == 0 && !$is_return_url) {
     $wa_session = new WebAuthSession();
     if (!$wa_session->isValidSession()) {
       header("Cache-Control: no-store, no-cache, must-revalidate");
-      user_logout();
+      unset($_SESSION['wa_session_data']);
     }
   }
   else {

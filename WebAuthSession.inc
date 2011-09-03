@@ -188,7 +188,6 @@ class WebAuthSession {
   }
 
   public function isValidSession() {
-    global $user;
     if (isset($this->atCookie)) {
       if (empty($this->data)) {
         $this->loadSessionData();
