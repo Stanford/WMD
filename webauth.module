@@ -302,6 +302,8 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
         unset($_COOKIE['WMDsecureLogin']);
         setcookie('WMDsecureLogin', '', time() - 3600);
       }
+      unset($_SESSION['wa_session_data']);
+      unset($_SESSION['wa_return_url']);
   }
 }
 
