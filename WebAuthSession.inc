@@ -239,20 +239,26 @@ class WebAuthSession {
       }
     }
 
+    $this->returnUrl  = $returnDest;
+
     // Save query for later use.
     $query = '';
-    if (empty($query)) {
-      foreach ($_GET as $key => $value) {
-        if ($key != 'q') {
-          if (strlen($newquery) > 0) {
-            $query .= '&';
-          }
-          $query .= $key . '=' . drupal_urlencode($value);
+    foreach ($_GET as $key => $value) {
+      if ($key != 'q' && $key != 'destination') {
+        if (strlen($query) > 0) {
+          $query .= '&';
         }
+        $query .= $key . '=' . drupal_urlencode($value);
       }
     }
-    $this->returnUrl  = $returnDest;
-    $this->returnUrl .= !empty($query) ? $query : '';
+
+    if ($query != '') {
+      if (strpos($this->returnUrl, '?') === FALSE) {
+        $this->returnUrl .= '?';
+      }
+      $this->returnUrl .= $query;
+    }
+
     if ($url != NULL) {
       $_SESSION['wa_return_url'] = $this->returnUrl;
     }
