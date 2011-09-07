@@ -169,6 +169,7 @@ class WebAuthSession {
   }
 
   public function loadSessionData() {
+    global $user;
     if (isset($_SESSION['wa_session_data'])) {
       $this->data = $_SESSION['wa_session_data'];
     }
@@ -183,7 +184,9 @@ class WebAuthSession {
           $this->data[$k] = $v;
         }
       }
-      $this->writeSessionData();
+      if ($user->uid > 0) {
+        $this->writeSessionData();
+      }
     }
   }
 
