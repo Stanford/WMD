@@ -37,10 +37,6 @@ function webauth_boot() {
 function webauth_init() {
   global $wa_session, $user;
 
-  if (variable_get('webauth_nossl', FALSE)) {
-    return;
-  }
-
   $is_return_url = (bool) ($_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login');
   $access_denied_page = variable_get('site_403', '');
 

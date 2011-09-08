@@ -4,9 +4,6 @@
  */
 
 function webauth_admin_settings() {
-	if (variable_get('webauth_nossl', FALSE)) {
-	  return;
-	}
 
 	$result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
 	$roles = array();
@@ -41,9 +38,6 @@ function webauth_admin_settings() {
 }
 
 function webauth_admin_groups(&$form_state) {
-  if (variable_get('webauth_nossl', FALSE)) {
-    return;
-  }
 
   $form = array();
   $groups = array();
@@ -148,9 +142,6 @@ function webauth_admin_groups_submit($form, &$form_state) {
 }
 
 function webauth_admin_users(&$form_state) {
-  if (variable_get('webauth_nossl', FALSE)) {
-    return;
-  }
 
   $form = array();
 
