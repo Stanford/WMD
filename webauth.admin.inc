@@ -26,7 +26,7 @@ function webauth_admin_settings() {
 		'#type' => 'textfield',
 		'#title' => t('WebLogin Link Text'),
 		'#size' => 80, '#maxlength' =>255,
-		'#default_value' => variable_get('webauth_link_text','SUNetID Users'),
+		'#default_value' => variable_get('webauth_link_text','Login with your SUNetID'),
 		'#description' => t('The text which is displayed as the link to the WebLogin page for SUNetID users.')
 	);
 	$form['webauth_destination'] = array(
