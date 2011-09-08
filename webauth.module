@@ -41,10 +41,6 @@ function webauth_init() {
     return;
   }
 
-  // Setup some variables about forwarding.
-  $is_forwarded = (bool) isset($_SERVER['HTTP_X_FORWARDED_HOST']);
-  $has_xhost = (bool) (strcmp($_SERVER['HTTP_X_FORWARDED_HOST'],
-                             variable_get('webauth_xhost','')) !== 0);
   $is_return_url = (bool) ($_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login');
   $access_denied_page = variable_get('site_403', '');
 
@@ -54,10 +50,6 @@ function webauth_init() {
     variable_set('webauth_403', $access_denied_page);
   }
 
-  // If we are running behind a proxy server, save the xhost value in our drupal variables.
-  if ($is_forwarded && !$has_xhost) {
-    variable_set('webauth_xhost', $_SERVER['HTTP_X_FORWARDED_HOST']);
-  }
   // Start new WebAuthSession.
   if ($user->uid == 0 && !$is_return_url) {
     $wa_session = new WebAuthSession();
