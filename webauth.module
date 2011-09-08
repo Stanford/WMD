@@ -37,7 +37,7 @@ function webauth_boot() {
 function webauth_init() {
   global $wa_session, $user;
 
-  $is_return_url = (bool) ($_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login');
+  $is_return_url = (bool) ($_GET['q'] == variable_get('webauth_path', conf_path() . '/webauth') . '/login');
   $access_denied_page = variable_get('site_403', '');
 
   // Update our access denied page.
