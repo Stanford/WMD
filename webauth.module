@@ -294,8 +294,8 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       break;
     case 'logout':
       if (isset($_COOKIE['webauth_at'])) {
-        //unset($_COOKIE['webauth_at']);
-        //setcookie('webauth_at', '', time() - 3600, '/');
+        unset($_COOKIE['webauth_at']);
+        setcookie('webauth_at', '', time() - 3600, '/');
       }
       if (isset($_COOKIE['WMDsecureLogin'])) {
         unset($_COOKIE['WMDsecureLogin']);
