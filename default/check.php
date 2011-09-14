@@ -11,7 +11,7 @@
 $vars = $_SERVER;
 
 foreach ($vars as $key => $value) {
-  $key = preg_replace('^REMOTE_', '', $key); // strip REMOTE_ prefixes
+  $key = preg_replace('^REDIRECT_', '', $key); // strip REDIRECT_ prefixes
 	if (strtoupper(substr($key, 0, 8)) === 'WEBAUTH_') {
 		$key2 = strtolower(substr($key, 8));
 		header('wa_' . $key2 . ': ' . $value);
