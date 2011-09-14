@@ -157,7 +157,7 @@ function webauth_return() {
     $wa_session = new WebAuthSession();
   }
 
-  if (!$user->uid) {
+  if ($user->uid == 0) {
     if ($wa_session->isValidSession()) {
       $form_state = array();
       $form_state['values']['name'] = $wa_session->getSessionData('wa_remote_user');

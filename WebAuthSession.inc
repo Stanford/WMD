@@ -179,6 +179,9 @@ class WebAuthSession {
         if (drupal_substr($k, 0, 16) == 'wa_ldapprivgroup') {
           $this->data['ldap_groups'][$v] = $v;
         }
+        else {
+          $this->data[$k] = $v;
+        }
       }
       if ($this->isLoggedIn()) {
         $this->writeSessionData();
