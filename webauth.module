@@ -38,6 +38,7 @@ function webauth_init() {
   global $wa_session, $user;
 
   $is_return_url = (bool) ($_GET['q'] == variable_get('webauth_path', conf_path() . '/webauth') . '/login');
+  $no_check_php_loop = (bool) (array_pop(split('/', $_GET['q'])) != 'check.php');
   $access_denied_page = variable_get('site_403', '');
 
   // Update our access denied page.
@@ -47,7 +48,7 @@ function webauth_init() {
   }
 
   // Start new WebAuthSession.
-  if ($user->uid == 0 && !$is_return_url) {
+  if ($user->uid == 0 && !$is_return_url && $no_check_php_loop) {
     $wa_session = new WebAuthSession();
     if (!$wa_session->isValidSession()) {
       header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -433,3 +434,4 @@ function webauth_write_htaccess() {
   fwrite($fp, $htaccess_file);
   fclose($fp);
 }
+
