@@ -2,6 +2,31 @@
 // $Id: webauth.install 1808 2010-03-18 17:32:58Z ksharp $
 
 /**
+ * Implementation of hook_requirements()
+ *
+ * Check writability of the webaith directory on install so we don't create a
+ * broken site.
+ */
+function webauth_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  // Report Drupal version
+  if ($phase == 'install') {
+    $webauth_path = conf_path() . '/webauth';
+    if (!file_check_directory($webauth_path)) {
+      $requirements['webauth'] = array(
+        'title' => $t('Webauth.'),
+        'value' => $t('The directory %dir is not writable! Webauth could not be enabled.', array('%dir' => $webauth_path)),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+
+  return $requirements;
+}
+
+/**
  * Implementation of hook_install().
  */
 function webauth_install() {
