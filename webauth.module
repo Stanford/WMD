@@ -47,21 +47,9 @@ function webauth_init() {
     variable_set('webauth_403', $access_denied_page);
   }
 
-  // Start new WebAuthSession.
-  if ($user->uid == 0 && !$is_return_url && $no_check_php_loop) {
-    $wa_session = new WebAuthSession();
-    if (!$wa_session->isValidSession()) {
-      header("Cache-Control: no-store, no-cache, must-revalidate");
-      unset($_SESSION['wa_session_data']);
-    }
+  if ($user->uid > 0) {
+    header("Cache-Control: no-store, no-cache, must-revalidate");
   }
-  else {
-    // Make sure we don't get any pages in browser cache.
-    if ($user->uid > 0) {
-      header("Cache-Control: no-store, no-cache, must-revalidate");
-    }
-  }
-
 }
 
 /**
@@ -357,7 +345,9 @@ function webauth_grant_roles(&$edit, &$account) {
 
 function webauth_login_validate($form, &$form_state) {
   global $wa_session;
-
+  if (!$wa_session) {
+    $wa_session = new WebAuthSession();
+  }
   if ($wa_session->isValidSession()) {
     user_external_login_register($form_state['values']['name'] . '@' . $form_state['weblogin']['server'], 'webauth');
     user_authenticate_finalize($form_state['values']);
