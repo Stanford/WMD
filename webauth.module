@@ -125,9 +125,6 @@ function webauth_error_page() {
     if (trim(variable_get('webauth_destination', '')) != '') {
       $redirect = trim(variable_get('webauth_destination', ''));
     }
-    elseif (variable_get('clean_url', FALSE) && isset($_SERVER['REDIRECT_URL'])) {
-      $redirect = str_replace(base_path(), '', $_SERVER['REDIRECT_URL']);
-    }
     elseif (isset($_SERVER['REQUEST_URI'])) {
       $redirect = str_replace(base_path(), '', $_SERVER['REQUEST_URI']);
       $redirect = str_replace("?q=", '', $redirect);
