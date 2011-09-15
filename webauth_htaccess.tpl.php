@@ -3,6 +3,7 @@
 AuthType WebAuth
 WebAuthLdapAttribute displayName
 WebAuthLdapAttribute suAffiliation
+WebAuthLdapAttribute mail
 
 <?php if ($rewrite_url): ?>
 RewriteEngine on
