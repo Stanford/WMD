@@ -11,13 +11,17 @@
 $vars = $_SERVER;
 
 foreach ($vars as $key => $value) {
-  $key = preg_replace('^REDIRECT_', '', $key); // strip REDIRECT_ prefixes
-	if (strtoupper(substr($key, 0, 8)) === 'WEBAUTH_') {
-		$key2 = strtolower(substr($key, 8));
-		header('wa_' . $key2 . ': ' . $value);
-	}
+  $key = preg_replace('/^REDIRECT_/', '', $key); // strip REDIRECT_ prefixes
+
+  if (strtoupper(substr($key, 0, 8)) === 'WEBAUTH_') {
+    $key2 = strtolower(substr($key, 8));
+    header('wa_' . $key2 . ': ' . $value);
+  }
+
+  if ($key == 'REMOTE_USER') {
+	  header('wa_remote_user: ' . $value);
+  }
 }
-header('wa_remote_user: ' . $vars['REMOTE_USER']);
 
 print '<html><head><title>wa_check</title></head>';
 print '<body>';
