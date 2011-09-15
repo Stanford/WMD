@@ -5,6 +5,7 @@ require valid-user
 
 WebAuthLdapAttribute displayName
 WebAuthLdapAttribute suAffiliation
+WebAuthLdapAttribute mail
 
 
 WebAuthLdapPrivgroup stanford:student
