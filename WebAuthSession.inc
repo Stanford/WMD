@@ -297,8 +297,6 @@ class WebAuthSession {
     if (variable_get('clean_url', FALSE) == FALSE) {
       $url['path'] = base_path() . variable_get('webauth_path', conf_path() . '/webauth') . '/check.php';
     }
-    drupal_set_message("DEBUG: <pre>". print_r($url, 1) .'</pre>');
-    drupal_set_message("DEBUG: ". variable_get('webauth_path', ""));
     $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
   	if (!$sock) {
   		drupal_set_message('Unable to authenticate because of socket error: '.$errstr,'error');
