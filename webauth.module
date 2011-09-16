@@ -49,6 +49,10 @@ function webauth_init() {
 
   if ($user->uid > 0) {
     header("Cache-Control: no-store, no-cache, must-revalidate");
+    $wa_session = new WebAuthSession();
+    if (!$wa_session->isValidSession()) {
+      user_logout(); // invalid session
+    }
   }
 }
 
