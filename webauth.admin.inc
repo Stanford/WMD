@@ -213,9 +213,11 @@ function webauth_admin_users_submit($form, &$form_state) {
 function webauth_migrate_to_content_access() {
   // make sure content_access is loaded in case this is during an update hook
   require_once(drupal_get_path('module', 'content_access') . "/content_access.module");
-  // The webauth table contains specific mappings, which we should respect.
-  $default_role = variable_get('webauth_default_role', 0);
+  require_once(drupal_get_path('module', 'content_access') . "/content_access.admin.inc");
 
+  $types = array(); // we will need to track node types touched so they're enabled.
+  $default_role = variable_get('webauth_default_role', 0);
+  // The webauth table contains specific mappings, which we should respect.
   $result = db_query("SELECT * FROM {webauth}");
   while ($webauth_access = db_fetch_object($result)) {
     $node = node_load($webauth_access->nid);
@@ -223,7 +225,9 @@ function webauth_migrate_to_content_access() {
     $sugroups = explode(',', $webauth_access->sugroups);
     foreach ($sugroups as $sugroup) {
       $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = '%s'", $sugroup));
-      $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
+      if ($wa_mapped_role->rid) {
+        $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
+      }
     }
     $settings = array(
       'view' => array_keys($webauth_roles),
@@ -234,6 +238,7 @@ function webauth_migrate_to_content_access() {
       'delete_own' => array(),
     );
     content_access_save_per_node_settings($node, $settings);
+    $types[$node->type] = 1;
   }
 
   // Force maps to the default role, so only proceed if we have one set.
@@ -250,8 +255,13 @@ function webauth_migrate_to_content_access() {
     while ($webauth_force = db_fetch_object($result)) {
       $node = node_load($webauth_force->nid);
       content_access_save_per_node_settings($node, $settings);
+      $types[$node->type] = 1;
     }
   }
 
-
+  // Ensure that all types are set to per-node control.
+  $content_access_settings = array('per_node' => $types);
+  content_access_set_settings($content_access_settings);
+  // Rebuild content_access settings.
+  content_access_mass_update($types);
 }
