@@ -51,12 +51,12 @@ function webauth_init() {
 
   if ($user->uid > 0) {
     header("Cache-Control: no-store, no-cache, must-revalidate");
-    $wa_session = new WebAuthSession();
-    if ($wa_session->isLoggedIn() && !$wa_session->isValidSession()) {
-      // An invalid webauth token was in found, but we only want to log the
-      // current user out of Drupal if they are a webauthed one. It's ok if
-      // you have an invalid token and logged in via a local account.
-      if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
+    // We only want to go further and check the wa_session if this user is
+    // authenticated via webauth.
+    if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
+      $wa_session = new WebAuthSession();
+      if ($wa_session->isLoggedIn() && !$wa_session->isValidSession()) {
+        // An invalid webauth token was in found!
         // Destroy the current session:
         session_destroy();
         // Only variables can be passed by reference workaround.
