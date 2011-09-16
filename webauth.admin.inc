@@ -200,8 +200,58 @@ function webauth_admin_users_validate($form, &$form_state) {
 
 }
 
-
 function webauth_admin_users_submit($form, &$form_state) {
   // Need to update the .htaccess file.
   webauth_write_htaccess();
+}
+
+/**
+ * Migrate old-style {webauth} and {webauth_force} data to {node_access}.
+ *
+ * This is here so it can be called from the install file or at a later date.
+ */
+function webauth_migrate_to_content_access() {
+  // make sure content_access is loaded in case this is during an update hook
+  require_once(drupal_get_path('module', 'content_access') . "/content_access.module");
+  // The webauth table contains specific mappings, which we should respect.
+  $default_role = variable_get('webauth_default_role', 0);
+
+  $result = db_query("SELECT * FROM {webauth}");
+  while ($webauth_access = db_fetch_object($result)) {
+    $node = node_load($webauth_access->nid);
+    $webauth_roles = unserialize($webauth_access->roles);
+    $sugroups = explode(',', $webauth_access->sugroups);
+    foreach ($sugroups as $sugroup) {
+      $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = '%s'", $sugroup));
+      $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
+    }
+    $settings = array(
+      'view' => array_keys($webauth_roles),
+      'view_own' => array(),
+      'update' => array(),
+      'update_own' => array(),
+      'delete' => array(),
+      'delete_own' => array(),
+    );
+    content_access_save_per_node_settings($node, $settings);
+  }
+
+  // Force maps to the default role, so only proceed if we have one set.
+  if ($default_role > 0) {
+    $result = db_query("SELECT * FROM {webauth_force}");
+    $settings = array(
+      'view' => array($default_role),
+      'view_own' => array(),
+      'update' => array(),
+      'update_own' => array(),
+      'delete' => array(),
+      'delete_own' => array(),
+    );
+    while ($webauth_force = db_fetch_object($result)) {
+      $node = node_load($webauth_force->nid);
+      content_access_save_per_node_settings($node, $settings);
+    }
+  }
+
+
 }

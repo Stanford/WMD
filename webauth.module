@@ -434,4 +434,3 @@ function webauth_write_htaccess() {
   fwrite($fp, $htaccess_file);
   fclose($fp);
 }
-

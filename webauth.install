@@ -211,3 +211,23 @@ function webauth_update_6300() {
 
   return $ret;
 }
+
+/***
+ * This pulls from the old webauth and webauth_force tables and sets up
+ * corresponding content_access rules.
+ *
+ * It is set as its own function so it can be run separately from the
+ * main schema setup in 6300.
+ */
+function webauth_update_6301() {
+  $ret = array();
+  if (module_exists('content_access')) {
+    drupal_set_message("Content Access module detected. Starting webauth access migration.");
+    require_once(drupal_get_path('module', 'webauth') . "/webauth.admin.inc");
+    webauth_migrate_to_content_access();
+  }
+  else {
+    drupal_set_message("Content Access module was not found. Skipping migration.");
+  }
+  return $ret;
+}
