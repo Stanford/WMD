@@ -11,6 +11,8 @@ include_once(dirname(__FILE__) . '/WebAuthSession.inc');
 
 /**
  * Implementation of hook_boot()
+ *
+ * This functions very very early, before most of Drupal has even loaded.
  */
 function webauth_boot() {
   if (!empty($_SERVER['HTTPS'])) {
@@ -50,8 +52,19 @@ function webauth_init() {
   if ($user->uid > 0) {
     header("Cache-Control: no-store, no-cache, must-revalidate");
     $wa_session = new WebAuthSession();
-    if (!$wa_session->isValidSession()) {
-      user_logout(); // invalid session
+    if ($wa_session->isLoggedIn() && !$wa_session->isValidSession()) {
+      // An invalid webauth token was in found, but we only want to log the
+      // current user out of Drupal if they are a webauthed one. It's ok if
+      // you have an invalid token and logged in via a local account.
+      if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
+        // Destroy the current session:
+        session_destroy();
+        // Only variables can be passed by reference workaround.
+        $null = NULL;
+        user_module_invoke('logout', $null, $user);
+        // Load the anonymous user
+        $user = drupal_anonymous_user();
+      }
     }
   }
 }
@@ -271,10 +284,6 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
       break;
     case 'logout':
-      if (isset($_COOKIE['webauth_at'])) {
-        unset($_COOKIE['webauth_at']);
-        setcookie('webauth_at', '', time() - 3600, '/');
-      }
       if (isset($_COOKIE['WMDsecureLogin'])) {
         unset($_COOKIE['WMDsecureLogin']);
         setcookie('WMDsecureLogin', '', time() - 3600);
