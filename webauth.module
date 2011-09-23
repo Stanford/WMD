@@ -49,7 +49,7 @@ function webauth_init() {
     variable_set('webauth_403', $access_denied_page);
   }
 
-  if ($user->uid > 0) {
+  if ($user->uid > 0 && $no_check_php_loop) {
     header("Cache-Control: no-store, no-cache, must-revalidate");
     // We only want to go further and check the wa_session if this user is
     // authenticated via webauth.
