@@ -265,4 +265,5 @@ function webauth_migrate_to_content_access() {
   // Rebuild content_access settings.
   content_access_mass_update($types);
   drupal_set_message(t("You need to rebuild the node access settings now. You can to that !link.", array('!link' => l(t('here'), 'admin/content/node-settings'))), 'error');
+  node_access_needs_rebuild(TRUE);
 }
