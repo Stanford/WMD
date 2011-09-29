@@ -277,8 +277,14 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       }
       break;
     case 'insert':
-      webauth_update_fields($edit, $account);
-      webauth_grant_roles($edit, $account);
+      // We only want to run these if the user is self-creating via webauth.
+      // Otherwise an admin user will transpose their own values onto any
+      // account they manually create.
+      global $user;
+      if ($user->uid == 0) {
+        webauth_update_fields($edit, $account);
+        webauth_grant_roles($edit, $account);
+      }
       break;
     case 'delete':
       db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
@@ -309,52 +315,49 @@ function webauth_update_fields(&$edit, &$account) {
 
 function webauth_grant_roles(&$edit, &$account) {
   global $wa_session;
-  global $user;
-  if ($user->uid == 0) {
-    if (!$wa_session) {
-      $wa_session = new WebAuthSession();
+  if (!$wa_session) {
+    $wa_session = new WebAuthSession();
+  }
+
+  if ($wa_session->isValidSession()) {
+    $groups = $wa_session->getLdapGroups();
+    $new = array('roles' => $account->roles);
+
+    // Add SUNet User role for all valid users.
+    $default_name = db_result(db_query("SELECT name FROM {role} WHERE rid = %d", variable_get('webauth_default_role', 0)));
+    if (variable_get('webauth_default_role', 0) != 0 && !isset($new['roles'][variable_get('webauth_default_role', 0)])) {
+      $new['roles'][variable_get('webauth_default_role', 0)] = $name;
     }
 
-    if ($wa_session->isValidSession()) {
-      $groups = $wa_session->getLdapGroups();
-      $new = array('roles' => $account->roles);
+    // Unserialize data.
+    $data = unserialize($account->data);
+    $data = is_array($data) ? $data : array();
+    $current = array();
 
-      // Add SUNet User role for all valid users.
-      $default_name = db_result(db_query("SELECT name FROM {role} WHERE rid = %d", variable_get('webauth_default_role', 0)));
-      if (variable_get('webauth_default_role', 0) != 0 && !isset($new['roles'][variable_get('webauth_default_role', 0)])) {
-        $new['roles'][variable_get('webauth_default_role', 0)] = $name;
+    // Find all roles that are in the webauth_roles table and add any ones that user is in.
+    $result = db_query("SELECT r.rid, r.name, wr.wa_group AS `group`, wr.warid FROM {webauth_roles} wr INNER JOIN {role} r ON r.rid = wr.rid");
+    while ($role = db_fetch_object($result)) {
+      if (in_array($role->group, $groups)) {
+        $new['roles'][$role->rid] = $role->name;
+        $data['webauth_assigned_roles'][$role->rid] = $role->name;
+        $current[$role->rid] = $role->rid;
+        db_query("DELETE FROM {webauth_roles_history} WHERE warid = %d AND uid = %d", $role->warid, $account->uid);
+        db_query("INSERT INTO {webauth_roles_history} (warid, uid, rid) VALUES (%d, %d, %d)", $role->warid, $account->uid, $role->rid);
       }
-
-      // Unserialize data.
-      $data = unserialize($account->data);
-      $data = is_array($data) ? $data : array();
-      $current = array();
-
-      // Find all roles that are in the webauth_roles table and add any ones that user is in.
-      $result = db_query("SELECT r.rid, r.name, wr.wa_group AS `group`, wr.warid FROM {webauth_roles} wr INNER JOIN {role} r ON r.rid = wr.rid");
-      while ($role = db_fetch_object($result)) {
-        if (in_array($role->group, $groups)) {
-          $new['roles'][$role->rid] = $role->name;
-          $data['webauth_assigned_roles'][$role->rid] = $role->name;
-          $current[$role->rid] = $role->rid;
-          db_query("DELETE FROM {webauth_roles_history} WHERE warid = %d AND uid = %d", $role->warid, $account->uid);
-          db_query("INSERT INTO {webauth_roles_history} (warid, uid, rid) VALUES (%d, %d, %d)", $role->warid, $account->uid, $role->rid);
-        }
-      }
-      // Close out any groups they shouldn't have access to.
-      $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
-      while ($role = db_fetch_object($result)) {
-        if (!isset($current[$role->rid])) {
-          unset($data['webauth_assigned_roles'][$role->rid]);
-          unset($new['roles'][$role->rid]);
-          db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
-          db_query("DELETE FROM {users_roles} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
-        }
-      }
-
-      $account->data = serialize($data);
-      user_save($account, $new);
     }
+    // Close out any groups they shouldn't have access to.
+    $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
+    while ($role = db_fetch_object($result)) {
+      if (!isset($current[$role->rid])) {
+        unset($data['webauth_assigned_roles'][$role->rid]);
+        unset($new['roles'][$role->rid]);
+        db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
+        db_query("DELETE FROM {users_roles} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
+      }
+    }
+
+    $account->data = serialize($data);
+    user_save($account, $new);
   }
 }
 
