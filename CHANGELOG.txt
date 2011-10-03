@@ -1,14 +1,16 @@
-------------------------------------------------------------------------------
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
+
+
+WebAuth 6.x-3.0-beta2 2011-10-03
+------------------------------
+#42 by mrmarco: Added CHANGELOG.txt, Renamed README to README.txt and updated
+
 
 WebAuth 6.x-3.0-beta1 2011-10-03
 ------------------------------
 by srude, joshkoenig, mrmarco: 
 
-- Added CHANGELOG.txt
-- Renamed README to README.txt
-- Updated README.txt
 - Added site-specific WebAuth file location to support multi-site environments
 - Added all logging now uses the watchdog() function
 - Added use of preferred email address for new accounts (as set in StanfordYou)
