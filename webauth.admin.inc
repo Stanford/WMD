@@ -224,6 +224,7 @@ function webauth_migrate_to_content_access() {
     $webauth_roles = unserialize($webauth_access->roles);
     $sugroups = explode(',', $webauth_access->sugroups);
     foreach ($sugroups as $sugroup) {
+	  $sugroup = trim($sugroup);
       $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = '%s'", $sugroup));
       if ($wa_mapped_role->rid) {
         $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
