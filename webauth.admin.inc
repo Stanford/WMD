@@ -222,14 +222,31 @@ function webauth_migrate_to_content_access() {
   while ($webauth_access = db_fetch_object($result)) {
     $node = node_load($webauth_access->nid);
     $webauth_roles = unserialize($webauth_access->roles);
-    $sugroups = explode(',', $webauth_access->sugroups);
-    foreach ($sugroups as $sugroup) {
-	  $sugroup = trim($sugroup);
-      $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = '%s'", $sugroup));
-      if ($wa_mapped_role->rid) {
-        $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
+
+    if (trim($webauth_access->sugroups) != '') {
+      $sugroups = explode(',', $webauth_access->sugroups);
+      foreach ($sugroups as $sugroup) {
+	    $sugroup = trim($sugroup);
+        $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = '%s'", $sugroup));
+        if ($wa_mapped_role->rid) {
+          $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
+        }
+	    else {
+          $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $sugroup));
+          if (!$role_exists) {
+            db_query("INSERT INTO {role} (name) VALUES ('%s')", $sugroup);
+            drupal_set_message("Added Role $sugroup");
+          }
+          $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", $sugroup));
+          if ($rid) {
+            db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d, '%s')", $rid, $sugroup);
+            drupal_set_message("Added Group mapping for $sugroup => $sugroup");
+            $webauth_roles[$rid] = $rid;
+          }
+	    }
       }
     }
+
     $settings = array(
       'view' => array_keys($webauth_roles),
       'view_own' => array(),
