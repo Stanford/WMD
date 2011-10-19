@@ -293,6 +293,8 @@ class WebAuthSession {
   }
 
   public function getHeaderData() {
+    // Read and parse the header data provided by requesting check.php.
+    // This is the source of all webauth data for the system.
     $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
     if (variable_get('clean_url', FALSE) == FALSE) {
       $url['path'] = base_path() . variable_get('webauth_path', conf_path() . '/webauth') . '/check.php';
