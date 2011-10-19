@@ -156,6 +156,7 @@ class WebAuthSession {
 
   public function getReturnUrl($clear = FALSE) {
     if ($clear) {
+      $this->returnUrl = $_SESSION['wa_return_url'];
       unset($_SESSION['wa_return_url']);
     }
     return $this->returnUrl;
@@ -182,12 +183,13 @@ class WebAuthSession {
           $this->data[$k] = $v;
         }
       }
-      $this->writeSessionData();
+      if ($this->isLoggedIn()) {
+        $this->writeSessionData();
+      }
     }
   }
 
   public function isValidSession() {
-    global $user;
     if (isset($this->atCookie)) {
       if (empty($this->data)) {
         $this->loadSessionData();
@@ -224,7 +226,7 @@ class WebAuthSession {
   }
 
   public function makeReturnUrl($url = NULL) {
-    // Figure out our return destination and save to a cookie for later consumption
+    // Figure out our return destination and save to the session for later consumption
     $returnDest = $url;
     if (empty($returnDest)) {
       $wa_dest = trim(variable_get('webauth_destination', 'user'));
@@ -239,20 +241,29 @@ class WebAuthSession {
       }
     }
 
+    $this->returnUrl  = $returnDest;
+
     // Save query for later use.
     $query = '';
-    if (empty($query)) {
-      foreach ($_GET as $key => $value) {
-        if ($key != 'q') {
-          if (strlen($newquery) > 0) {
-            $query .= '&';
-          }
-          $query .= $key . '=' . drupal_urlencode($value);
+    foreach ($_GET as $key => $value) {
+      if ($key != 'q' && $key != 'destination') {
+        if (strlen($query) > 0) {
+          $query .= '&';
         }
+        $query .= $key . '=' . drupal_urlencode($value);
       }
     }
-    $this->returnUrl  = $returnDest;
-    $this->returnUrl .= !empty($query) ? $query : '';
+
+    if ($query != '') {
+      if (strpos($this->returnUrl, '?') === FALSE) {
+        $this->returnUrl .= '?';
+      }
+      $this->returnUrl .= $query;
+    }
+
+    if ($url != NULL) {
+      $_SESSION['wa_return_url'] = $this->returnUrl;
+    }
   }
 
   public function makeAuthUrl($redirect = NULL) {
@@ -282,11 +293,8 @@ class WebAuthSession {
   }
 
   public function getHeaderData() {
-    if (variable_get('clean_url', FALSE)) {
-      $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
-    }
-    else {
-      $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
+    $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
+    if (variable_get('clean_url', FALSE) == FALSE) {
       $url['path'] = base_path() . variable_get('webauth_path', conf_path() . '/webauth') . '/check.php';
     }
     $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
@@ -294,7 +302,6 @@ class WebAuthSession {
   		drupal_set_message('Unable to authenticate because of socket error: '.$errstr,'error');
   		return FALSE;
   	}
-
   	fwrite($sock, "GET " . $url['path'] . " HTTP/1.1\r\n");
   	fwrite($sock, "Host: " . $url['host'] . "\r\n");
   	fwrite($sock, "Connection: close\r\n");

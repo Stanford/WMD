@@ -7,8 +7,31 @@
  */
 
 define('WEBAUTH_DOMAIN', 'stanford.edu');
-
 include_once(dirname(__FILE__) . '/WebAuthSession.inc');
+
+/**
+ * Implementation of hook_boot()
+ *
+ * This functions very very early, before most of Drupal has even loaded.
+ */
+function webauth_boot() {
+  if (!empty($_SERVER['HTTPS'])) {
+    global $base_url, $user, $base_path;
+    ini_set('session.cookie_secure', 1);
+    $base_url = str_replace('http://', 'https://', $base_url);
+    if ($user->uid > 0) {
+      setcookie("WMDsecureLogin", 1, time()+3600, $base_path);
+    }
+  }
+  elseif ($_COOKIE["WMDsecureLogin"]) {
+    // Redirect so we can get secure session.
+    global $base_url, $base_path;
+    $url = $base_url . '?q=' . $_GET['q'];
+    $url = str_replace('http://', 'https://', $url);
+    header("Location: $url");
+  }
+}
+
 
 /**
  * Implementation of hook_init().
@@ -16,15 +39,8 @@ include_once(dirname(__FILE__) . '/WebAuthSession.inc');
 function webauth_init() {
   global $wa_session, $user;
 
-  if (variable_get('webauth_nossl', FALSE)) {
-    return;
-  }
-
-  // Setup some variables about forwarding.
-  $is_forwarded = (bool) isset($_SERVER['HTTP_X_FORWARDED_HOST']);
-  $has_xhost = (bool) strcmp($_SERVER['HTTP_X_FORWARDED_HOST'],
-                             variable_get('webauth_xhost','')) !== 0;
-  $is_return_url = (bool) $_GET['q'] == drupal_get_path('module', 'webauth') . '/auth/login';
+  $is_return_url = (bool) ($_GET['q'] == variable_get('webauth_path', conf_path() . '/webauth') . '/login');
+  $no_check_php_loop = (bool) (array_pop(split('/', $_GET['q'])) != 'check.php');
   $access_denied_page = variable_get('site_403', '');
 
   // Update our access denied page.
@@ -33,26 +49,24 @@ function webauth_init() {
     variable_set('webauth_403', $access_denied_page);
   }
 
-  // If we are running behind a proxy server, save the xhost value in our drupal variables.
-  if ($is_forwarded && !$has_xhost) {
-    variable_set('webauth_xhost', $_SERVER['HTTP_X_FORWARDED_HOST']);
-  }
-
-  // Start new WebAuthSession.
-  if (!$user->uid && !$is_return_url) {
-    $wa_session = new WebAuthSession();
-    if (!$wa_session->isValidSession()) {
-      header("Cache-Control: no-store, no-cache, must-revalidate");
-      user_logout();
+  if ($user->uid > 0 && $no_check_php_loop) {
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+    // We only want to go further and check the wa_session if this user is
+    // authenticated via webauth.
+    if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
+      $wa_session = new WebAuthSession();
+      if ($wa_session->isLoggedIn() && !$wa_session->isValidSession()) {
+        // An invalid webauth token was in found!
+        // Destroy the current session:
+        session_destroy();
+        // Only variables can be passed by reference workaround.
+        $null = NULL;
+        user_module_invoke('logout', $null, $user);
+        // Load the anonymous user
+        $user = drupal_anonymous_user();
+      }
     }
   }
-  else {
-    // Make sure we don't get any pages in browser cache.
-    if ($user->uid > 0) {
-      header("Cache-Control: no-store, no-cache, must-revalidate");
-    }
-  }
-
 }
 
 /**
@@ -67,11 +81,13 @@ function webauth_menu() {
   $items[$path] = array(
     'page callback' => 'webauth_return',
     'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
   );
 
   $items['webauth/403'] = array(
     'page callback' => 'webauth_error_page',
     'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
   );
 
   $items['admin/settings/webauth'] = array(
@@ -122,11 +138,15 @@ function webauth_error_page() {
     $wa_session = new WebAuthSession();
   }
   if (!$user->uid) {
-    if (isset($_SERVER['REDIRECT_URL'])) {
-      $redirect = str_replace(base_path(), '', $_SERVER['REDIRECT_URL']);
-      //header('HTTP/1.1 200 OK');
-      $wa_session->getWeblogin($redirect);
+    $redirect = NULL;
+    if (trim(variable_get('webauth_destination', '')) != '') {
+      $redirect = trim(variable_get('webauth_destination', ''));
     }
+    elseif (isset($_SERVER['REQUEST_URI'])) {
+      $redirect = str_replace(base_path(), '', $_SERVER['REQUEST_URI']);
+      $redirect = str_replace("?q=", '', $redirect);
+    }
+    $wa_session->getWeblogin($redirect);
   }
 }
 
@@ -139,7 +159,7 @@ function webauth_return() {
     $wa_session = new WebAuthSession();
   }
 
-  if (!$user->uid) {
+  if ($user->uid == 0) {
     if ($wa_session->isValidSession()) {
       $form_state = array();
       $form_state['values']['name'] = $wa_session->getSessionData('wa_remote_user');
@@ -209,11 +229,21 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
           'user_login_final_validate',
         );
       }
+      // drupal_execute() for user_login comes here, and we can lose our login
+      // redirect context, so if we are on the auth path here, we should stop
+      // altering at this point.
+      //
+      // I don't love this fix, but it's necssary given how the $wa_session
+      // object is constructued at the moment.
+      $path = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
+      if ($_GET['q'] == $path) {
+        return;
+      }
 
       // Build a link to wa_login.
       $secure_base_url = str_replace('http:', 'https:', $base_url);
       $webauth_login = $wa_session->getLoginUrl($_GET['q']);
-      $wa_url = l(variable_get('webauth_link_text','SUNetID'), $webauth_login);
+      $wa_url = l(variable_get('webauth_link_text','Login with your SUNetID'), $webauth_login);
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">',  // make it themable
         '#value' => $wa_url,
@@ -247,27 +277,40 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       }
       break;
     case 'insert':
-      webauth_update_fields($edit, $account);
-      webauth_grant_roles($edit, $account);
+      // We only want to run these if the user is self-creating via webauth.
+      // Otherwise an admin user will transpose their own values onto any
+      // account they manually create.
+      global $user;
+      if ($user->uid == 0) {
+        webauth_update_fields($edit, $account);
+        webauth_grant_roles($edit, $account);
+      }
+      break;
+    case 'delete':
+      db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
       break;
     case 'logout':
-      if (isset($_COOKIE['webauth_at'])) {
-        //unset($_COOKIE['webauth_at']);
-        //setcookie('webauth_at', '', time() - 3600, '/');
+      if (isset($_COOKIE['WMDsecureLogin'])) {
+        unset($_COOKIE['WMDsecureLogin']);
+        setcookie('WMDsecureLogin', '', time() - 3600);
       }
+      unset($_SESSION['wa_session_data']);
+      unset($_SESSION['wa_return_url']);
   }
 }
 
 function webauth_update_fields(&$edit, &$account) {
   global $wa_session;
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
+  global $user;
+  if ($user->uid == 0) {
+    if (!$wa_session) {
+      $wa_session = new WebAuthSession();
+    }
+
+    $mail = $wa_session->getSessionData('wa_ldap_mail');
+    $mail =  isset($mail) ? $mail : $account->name;
+    db_query("UPDATE {users} SET mail = '%s' WHERE uid = %d", $mail, $account->uid);
   }
-
-  $mail = $wa_session->getSessionData('wa_ldap_mail');
-  $mail =  isset($mail) ? $mail : $account->name;
-  db_query("UPDATE {users} SET mail = '%s' WHERE uid = %d", $mail, $account->uid);
-
 }
 
 function webauth_grant_roles(&$edit, &$account) {
@@ -292,14 +335,14 @@ function webauth_grant_roles(&$edit, &$account) {
     $current = array();
 
     // Find all roles that are in the webauth_roles table and add any ones that user is in.
-    $result = db_query("SELECT r.rid, r.name, wr.wa_group AS `group` FROM {webauth_roles} wr INNER JOIN {role} r ON r.rid = wr.rid");
+    $result = db_query("SELECT r.rid, r.name, wr.wa_group AS `group`, wr.warid FROM {webauth_roles} wr INNER JOIN {role} r ON r.rid = wr.rid");
     while ($role = db_fetch_object($result)) {
       if (in_array($role->group, $groups)) {
         $new['roles'][$role->rid] = $role->name;
         $data['webauth_assigned_roles'][$role->rid] = $role->name;
         $current[$role->rid] = $role->rid;
-        db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
-        db_query("INSERT INTO {webauth_roles_history} (uid, rid) VALUES (%d, %d)", $account->uid, $role->rid);
+        db_query("DELETE FROM {webauth_roles_history} WHERE warid = %d AND uid = %d", $role->warid, $account->uid);
+        db_query("INSERT INTO {webauth_roles_history} (warid, uid, rid) VALUES (%d, %d, %d)", $role->warid, $account->uid, $role->rid);
       }
     }
     // Close out any groups they shouldn't have access to.
@@ -320,7 +363,9 @@ function webauth_grant_roles(&$edit, &$account) {
 
 function webauth_login_validate($form, &$form_state) {
   global $wa_session;
-
+  if (!$wa_session) {
+    $wa_session = new WebAuthSession();
+  }
   if ($wa_session->isValidSession()) {
     user_external_login_register($form_state['values']['name'] . '@' . $form_state['weblogin']['server'], 'webauth');
     user_authenticate_finalize($form_state['values']);

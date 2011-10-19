@@ -2,6 +2,31 @@
 // $Id: webauth.install 1808 2010-03-18 17:32:58Z ksharp $
 
 /**
+ * Implementation of hook_requirements()
+ *
+ * Check writability of the webaith directory on install so we don't create a
+ * broken site.
+ */
+function webauth_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  // Report Drupal version
+  if ($phase == 'install') {
+    $webauth_path = conf_path() . '/webauth';
+    if (!file_check_directory($webauth_path)) {
+      $requirements['webauth'] = array(
+        'title' => $t('Webauth.'),
+        'value' => $t('The directory %dir is not writable! Webauth could not be enabled.', array('%dir' => $webauth_path)),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+
+  return $requirements;
+}
+
+/**
  * Implementation of hook_install().
  */
 function webauth_install() {
@@ -51,6 +76,7 @@ function webauth_install() {
   // Write htaccess file.
   webauth_write_htaccess();
   copy(drupal_get_path('module', 'webauth') . '/default/.htaccess', variable_get('webauth_path', '') . '/.htaccess');
+
 }
 
 /**
@@ -105,6 +131,12 @@ function webauth_schema() {
   $schema['webauth_roles_history'] = array(
     'description' => 'Mapping of whether webauth assigned a role or not..',
     'fields' => array(
+      'warid' => array(
+        'description' => 'The role mapping id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'uid' => array(
         'description' => 'The Drupal user id.',
         'type' => 'int',
@@ -118,8 +150,10 @@ function webauth_schema() {
         'not null' => TRUE,
       ),
     ),
-   'indexes' => array(
+    'indexes' => array(
       'user_role' => array('uid', 'rid'),
+      'uid' => array('uid'),
+      'warid' => array('warid'),
     ),
   );
 
@@ -128,9 +162,72 @@ function webauth_schema() {
 
 function webauth_update_6300() {
   $ret = array();
-  $schema = drupal_get_schema_unprocessed('webauth');
-  _drupal_initialize_schema('webauth', $schema);
-  db_create_table($ret, 'webauth_roles_history', $schema['webauth_roles_history']);
+  require_once(drupal_get_path('module', 'user') . "/user.admin.inc");
+  require_once(drupal_get_path('module', 'webauth') . "/webauth.module");
 
+  // Install our requisite tables.
+  drupal_install_schema('webauth');
+
+  // Setup our webauth data path
+  $webauth_path = conf_path() . '/webauth';
+  variable_set('webauth_path', $webauth_path);
+
+  // Add default roles
+  $roles = array(
+    '' => 'SUNet User',
+    'stanford:student' => 'Stanford Student',
+    'stanford:staff' => 'Stanford Staff',
+    'stanford:faculty' => 'Stanford Faculty',
+  );
+
+  foreach ($roles as $role) {
+    $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $role));
+    if (!$role_exists) {
+      db_query("INSERT INTO {role} (name) VALUES ('%s')", $role);
+      drupal_set_message("Added Role $role");
+    }
+  }
+
+  // Map webauth roles to new roles
+  foreach ($roles as $group => $role) {
+    $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", $role));
+    if (!empty($group)) {
+      if ($rid) {
+        db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d, '%s')", $rid, $group);
+        drupal_set_message("Added Group mapping for $role => $group");
+      }
+      else {
+        watchdog('webauth', "Unknown error occurred trying to get rid for @role", array('@role' => $role), WATCHDOG_ERROR);
+      }
+    }
+  }
+
+  $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", 'SUNet User'));
+  variable_set('webauth_default_role', $rid);
+
+  // Write initial .htaccess and check.php file.
+  webauth_write_htaccess();
+  copy(drupal_get_path('module', 'webauth') . '/default/.htaccess', variable_get('webauth_path', '') . '/.htaccess');
+
+  return $ret;
+}
+
+/***
+ * This pulls from the old webauth and webauth_force tables and sets up
+ * corresponding content_access rules.
+ *
+ * It is set as its own function so it can be run separately from the
+ * main schema setup in 6300.
+ */
+function webauth_update_6301() {
+  $ret = array();
+  if (module_exists('content_access')) {
+    drupal_set_message("Content Access module detected. Starting webauth access migration.");
+    require_once(drupal_get_path('module', 'webauth') . "/webauth.admin.inc");
+    webauth_migrate_to_content_access();
+  }
+  else {
+    drupal_set_message("Content Access module was not found. Skipping migration.");
+  }
   return $ret;
 }
