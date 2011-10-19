@@ -46,7 +46,6 @@ function webauth_init() {
   // Update our access denied page.
   if ($access_denied_page != 'webauth/403') {
     variable_set('site_403', 'webauth/403');
-    variable_set('webauth_403', $access_denied_page);
   }
 
   if ($user->uid > 0 && $no_check_php_loop) {
@@ -130,7 +129,11 @@ function webauth_menu() {
 }
 
 /**
- * Handle 403 errors.
+ * Handle 403 errors by redirecting users to webauth for login.
+ *
+ * If, however, they are already logged in and don't have access
+ * (for instance, a normal user requesting /admin), then display
+ * a normal error message.
  */
 function webauth_error_page() {
   global $wa_session, $user;
@@ -148,6 +151,17 @@ function webauth_error_page() {
     }
     $wa_session->getWeblogin($redirect);
   }
+  # TODO: what if the user is logged in?
+  # 1. If there is a custom error message set, then that should be displayed
+  #    here. Use filter_xss_admin() on the output and for extra credit also
+  #    do a drupal_set_header('HTTP/1.1 403 Forbidden') so browsers know
+  #    what happened too.
+  #
+  # 2. If no message, do the same with a default, or use the existing drupal
+  #    function: drupal_access_denied().
+  #
+  # In either case, the method of drupal_access_denied() should be followed:
+  # print a theme('page', $output) and then exit.
 }
 
 /**
