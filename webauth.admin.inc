@@ -34,9 +34,14 @@ function webauth_admin_settings() {
 		'#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.')
 	);
 
-	# TODO for custom error messages.
-	# Place an additional $form element here to let the admin set a custom
-	# access denied message. Just a simple textarea should suffice.
+	$form['webauth_restrict_message'] = array(
+		'#type' => 'textarea',
+		'#title' => t('Restricted Access Message'),
+		'#cols' => 80,
+		'#rows' => 5,
+		'#default_value' => variable_get('webauth_restrict_message', ''),
+		'#description' => t('Message to be displayed to user when access to content is restricted.')
+	);
 
 	return system_settings_form($form);
 }

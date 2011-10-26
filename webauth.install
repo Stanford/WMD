@@ -73,6 +73,9 @@ function webauth_install() {
   $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", 'SUNet User'));
   variable_set('webauth_default_role', $rid);
 
+  // default restrict message
+  variable_set('webauth_restrict_message', 'This content has been restricted by the author or by the site administrator.');
+
   // Write htaccess file.
   webauth_write_htaccess();
   copy(drupal_get_path('module', 'webauth') . '/default/.htaccess', variable_get('webauth_path', '') . '/.htaccess');
