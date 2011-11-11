@@ -2,6 +2,7 @@
 name = WebAuth
 description = Authenticates users through Stanford WebAuth.
 package = WebAuth
-version = 3.0
+version = 6.x-3.0
 core = 6.x
-project status url = https://drupalfeatures.stanford.edu/fserver
+project = "webauth"
+project status url = "https://drupalfeatures.stanford.edu/fserver/webauth/6.x"
