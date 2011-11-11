@@ -39,7 +39,7 @@ function webauth_admin_settings() {
 		'#title' => t('Restricted Access Message'),
 		'#cols' => 80,
 		'#rows' => 5,
-		'#default_value' => variable_get('webauth_restrict_message', ''),
+		'#default_value' => variable_get('webauth_restrict_message', 'This content has been restricted by the author or by the site administrator.'),
 		'#description' => t('Message to be displayed to user when access to content is restricted.')
 	);
 

@@ -164,7 +164,7 @@ function webauth_error_page() {
   if ($user->uid) {
     drupal_set_header('HTTP/1.1 403 Forbidden');
     drupal_set_title(t('Access denied'));
-    $webauth_restrict_message = trim(filter_xss_admin(variable_get('webauth_restrict_message', '')));
+    $webauth_restrict_message = trim(filter_xss_admin(variable_get('webauth_restrict_message', 'This content has been restricted by the author or by the site administrator.')));
 	if (empty($webauth_restrict_message)) {
 	  drupal_access_denied();
 	}
