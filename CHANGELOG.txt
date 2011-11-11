@@ -2,6 +2,16 @@ WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
 
+WebAuth 6.x-3.0 2011-11-11
+------------------------------
+by mrmarco: Updated version number
+by mrmarco: Updated README.txt
+by mrmarco: Added feature server location
+#52 by mrmarco: Implemented Custom Restricted Message
+#55 by mrmarco: Migrate workgroups correctlya
+#54 by mrmarco: Strip spaces out of workgroup list
+by mrmarco: Updated LICENSE
+
 WebAuth 6.x-3.0-beta2 2011-10-03
 ------------------------------
 #42 by mrmarco: Added CHANGELOG.txt, Renamed README to README.txt and updated
