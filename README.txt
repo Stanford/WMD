@@ -68,3 +68,10 @@ install time.
 Authorizations is where you can decide who can login to your site using
 WebAuth. By default it's anyone with a SUNetID (valid-user) but you can
 restrict that further if you want.
+
+-- TROUBLESHOOTING --
+
+If you encounter any issues while using this module at Stanford, 
+please send a message to:
+
+drupallers@lists.stanford.edu
