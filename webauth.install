@@ -14,10 +14,10 @@ function webauth_requirements($phase) {
   // Report Drupal version
   if ($phase == 'install') {
     $webauth_path = conf_path() . '/webauth';
-    if (!file_check_directory($webauth_path)) {
+    if (!file_check_directory($webauth_path, FILE_CREATE_DIRECTORY)) {
       $requirements['webauth'] = array(
-        'title' => $t('Webauth.'),
-        'value' => $t('The directory %dir is not writable! Webauth could not be enabled.', array('%dir' => $webauth_path)),
+        'title' => $t('WebAuth.'),
+        'value' => $t('The directory %dir could not be created, possibly because the parent %parent is not writable. WebAuth could not be enabled. Please create %dir manually and re-enable WebAuth.', array('%dir' => $webauth_path, '%parent' => conf_path())),
         'severity' => REQUIREMENT_ERROR,
       );
     }
