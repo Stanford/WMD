@@ -41,7 +41,9 @@ More detailed information on installing modules here: http://drupal.org/node/701
 
 At install time, WebAuth will do the following for you:
 * create a webauth directory for its files under /sites/default/webauth
-  or under /sites/<name-of-site>/webauth for multi-site installs
+  or under /sites/<name-of-site>/webauth for multi-site installs.
+  You might need to create this directory manually if the web server can't
+  write to /sites/default or sites/<name-of-site>
 * create roles for SUNEtID User, Student, Staff and Faculty
 * create mappings from the appropriate workgroups to the roles it created
 * add a login link to the login block
