@@ -369,7 +369,7 @@ function webauth_grant_roles(&$edit, &$account) {
     // Add SUNet User role for all valid users.
     $default_name = db_result(db_query("SELECT name FROM {role} WHERE rid = %d", variable_get('webauth_default_role', 0)));
     if (variable_get('webauth_default_role', 0) != 0 && !isset($new['roles'][variable_get('webauth_default_role', 0)])) {
-      $new['roles'][variable_get('webauth_default_role', 0)] = $name;
+      $new['roles'][variable_get('webauth_default_role', 0)] = $default_name;
     }
 
     // Unserialize data.
