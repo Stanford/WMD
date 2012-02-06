@@ -241,15 +241,12 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     case 'user_profile_form':
       $account = $form['_account']['#value'];
-      if ($user->uid == $account->uid) {
-        // If we are editing our own account.
-        if (!empty($account->roles)) {
-          if (in_array(variable_get('webauth_default_role', ''), array_keys($account->roles))) {
-            // Hide elements for SUNet Users.
-            $form['account']['name']['#type'] = 'hidden';
-            $form['account']['name']['#value'] = $form['account']['name']['#default_value'];
-            $form['account']['pass']['#type'] = 'hidden';
-          }
+      if (!empty($account->roles)) {
+        if (in_array(variable_get('webauth_default_role', ''), array_keys($account->roles))) {
+          // Hide elements for SUNet Users.
+          $form['account']['name']['#type'] = 'hidden';
+          $form['account']['name']['#value'] = $form['_account']['#value']->name;
+          $form['account']['pass']['#type'] = 'hidden';
         }
       }
       break;
