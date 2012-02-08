@@ -245,14 +245,14 @@ class WebAuthSession {
 
     // Save query for later use.
     $query = '';
-    foreach ($_GET as $key => $value) {
-      if ($key != 'q' && $key != 'destination') {
-        if (strlen($query) > 0) {
-          $query .= '&';
-        }
-        $query .= $key . '=' . drupal_urlencode($value);
-      }
-    }
+	$temp_query = $_GET;
+
+	// don't save q or destination
+	unset($temp_query['q']);
+	unset($temp_query['destination']);
+
+	// The string replacement is for aesthetic purposes only
+	$query = str_replace('%2F','/', http_build_query($temp_query, '', '&'));
 
     if ($query != '') {
       if (strpos($this->returnUrl, '?') === FALSE) {
