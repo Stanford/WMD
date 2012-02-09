@@ -301,8 +301,8 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 function webauth_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'login':
-      // If we are a local account, check for roles and re-grant new roles.
-      if (in_array(variable_get('webauth_default_role', ''), array_keys($account->roles))) {
+      // If this is a WebAuth account, check for roles and re-grant new roles.
+      if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $account->uid))) {
         webauth_grant_roles($edit, $account);
       }
       break;
@@ -313,7 +313,6 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       global $user;
       if ($user->uid == 0) {
         webauth_update_fields($edit, $account);
-        webauth_grant_roles($edit, $account);
       }
       break;
     case 'delete':
