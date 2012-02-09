@@ -1,4 +1,4 @@
-$Id: README 1807 2010-03-18 16:53:04Z ksharp $
+$Id
 
 WMD - WebAuth Module for Drupal 6.x
 

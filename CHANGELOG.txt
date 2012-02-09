@@ -2,6 +2,20 @@ WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
 
+WebAuth 6.x-3.1 2012-02-09
+------------------------------
+#57 by mrmarco: Delete all variables at uninstall time
+#57 by mrmarco: Restored sites_403 variable at uninstall time
+#59 by mrmarco: Fix typo on DB Update message
+#60, #66 by mrmarco: Create the sites/default/webauth directory at install time
+#62 by mrmarco: Default Role Name not picked up when granting roles
+#63 by mrmarco: Roles not picked up if Rules is enabled
+#65 by mrmarco: Update WebAuthSession to handle multi-valued parameters in query string
+#67 by mrmarco: require valid-user disappears when mappings are added / removed
+#71 by mrmarco: users can't update own profile (timezone / email)
+#68-#70, #72, #73 by mrmarco: added new tests
+
+
 WebAuth 6.x-3.0 2011-11-11
 ------------------------------
 by mrmarco: Updated version number
@@ -11,6 +25,7 @@ by mrmarco: Added feature server location
 #55 by mrmarco: Migrate workgroups correctlya
 #54 by mrmarco: Strip spaces out of workgroup list
 by mrmarco: Updated LICENSE
+
 
 WebAuth 6.x-3.0-beta2 2011-10-03
 ------------------------------

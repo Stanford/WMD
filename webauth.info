@@ -1,8 +1,8 @@
-; $Id: webauth.info 1807 2010-03-18 16:53:04Z ksharp $
+; $Id
 name = WebAuth
 description = Authenticates users through Stanford WebAuth.
 package = WebAuth
-version = 6.x-3.0
+version = 6.x-3.1
 core = 6.x
 project = "webauth"
 project status url = "https://drupalfeatures.stanford.edu/fserver/webauth/6.x"
