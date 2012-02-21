@@ -5,45 +5,45 @@
 
 function webauth_admin_settings() {
 
-	$result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
-	$roles = array();
- 	while ($role = db_fetch_object($result)) {
- 	  $roles[$role->rid] = $role->name;
- 	}
+  $result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
+  $roles = array();
+  while ($role = db_fetch_object($result)) {
+    $roles[$role->rid] = $role->name;
+  }
 
-	$defValue = variable_get('webauth_allow_local', 1);
-	$form['webauth_allow_local'] = array(
-		'#type' => 'radios',
-		'#title' => t('Stanford WebAuth options'),
-		'#default_value' => $defValue,
-		'#options' => array(0 => t('Hide Local Drupal Accounts'), 1 => t('Allow Local Drupal Accounts')),
-		'#description' => t('Hide Local Drupal Accounts will allow users to only login through Stanford WebLogin.'),
-	);
-	$form['webauth_link_text'] = array(
-		'#type' => 'textfield',
-		'#title' => t('WebLogin Link Text'),
-		'#size' => 80, '#maxlength' =>255,
-		'#default_value' => variable_get('webauth_link_text','Login with your SUNetID'),
-		'#description' => t('The text which is displayed as the link to the WebLogin page for SUNetID users.')
-	);
-	$form['webauth_destination'] = array(
-		'#type' => 'textfield',
-		'#title' => t('Post-Login Destination'),
-		'#size' => 80, '#maxlength' => 255,
-		'#default_value' => variable_get('webauth_destination', ''),
-		'#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.')
-	);
+  $defValue = variable_get('webauth_allow_local', 1);
+  $form['webauth_allow_local'] = array(
+    '#type' => 'radios',
+    '#title' => t('Stanford WebAuth options'),
+    '#default_value' => $defValue,
+    '#options' => array(0 => t('Hide Local Drupal Accounts'), 1 => t('Allow Local Drupal Accounts')),
+    '#description' => t('Hide Local Drupal Accounts will allow users to only login through Stanford WebLogin.'),
+  );
+  $form['webauth_link_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('WebLogin Link Text'),
+    '#size' => 80, '#maxlength' =>255,
+    '#default_value' => variable_get('webauth_link_text','Login with your SUNetID'),
+    '#description' => t('The text which is displayed as the link to the WebLogin page for SUNetID users.')
+  );
+  $form['webauth_destination'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Post-Login Destination'),
+    '#size' => 80, '#maxlength' => 255,
+    '#default_value' => variable_get('webauth_destination', ''),
+    '#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.')
+  );
 
-	$form['webauth_restrict_message'] = array(
-		'#type' => 'textarea',
-		'#title' => t('Restricted Access Message'),
-		'#cols' => 80,
-		'#rows' => 5,
-		'#default_value' => variable_get('webauth_restrict_message', 'This content has been restricted by the author or by the site administrator.'),
-		'#description' => t('Message to be displayed to user when access to content is restricted.')
-	);
+  $form['webauth_restrict_message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Restricted Access Message'),
+    '#cols' => 80,
+    '#rows' => 5,
+    '#default_value' => variable_get('webauth_restrict_message', 'This content has been restricted by the author or by the site administrator.'),
+    '#description' => t('Message to be displayed to user when access to content is restricted.')
+  );
 
-	return system_settings_form($form);
+  return system_settings_form($form);
 }
 
 function webauth_admin_groups(&$form_state) {
@@ -235,12 +235,12 @@ function webauth_migrate_to_content_access() {
     if (trim($webauth_access->sugroups) != '') {
       $sugroups = explode(',', $webauth_access->sugroups);
       foreach ($sugroups as $sugroup) {
-	    $sugroup = trim($sugroup);
+      $sugroup = trim($sugroup);
         $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = '%s'", $sugroup));
         if ($wa_mapped_role->rid) {
           $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
         }
-	    else {
+        else {
           $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $sugroup));
           if (!$role_exists) {
             db_query("INSERT INTO {role} (name) VALUES ('%s')", $sugroup);
@@ -252,7 +252,7 @@ function webauth_migrate_to_content_access() {
             drupal_set_message("Added Group mapping for $sugroup => $sugroup");
             $webauth_roles[$rid] = $rid;
           }
-	    }
+        }
       }
     }
 

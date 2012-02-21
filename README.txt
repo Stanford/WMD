@@ -1,19 +1,17 @@
-$Id
-
 WMD - WebAuth Module for Drupal 6.x
 
--- SUMMARY -- 
+-- SUMMARY --
 
 Authors: Ken Sharp, Steve Rude, Josh Koenig, Marco Wise
 
 The WebAuth Module for Drupal (also known as WMD) implements external logins
-using Stanford's WebAuth. It automatically creates new users accounts and 
-assigns them Drupal roles based on mappings between Workgroups and Roles as 
+using Stanford's WebAuth. It automatically creates new users accounts and
+assigns them Drupal roles based on mappings between Workgroups and Roles as
 specified by the administrator.
 
 For a full description of the module, visit the project page:
   https://github.com/mistermarco/WMD/
-  
+
 To submit bug reports and feature suggestions, or to track changes:
   https://github.com/mistermarco/WMD/issues
 
@@ -23,7 +21,7 @@ See the LICENSE file.
 
 -- REQUIREMENTS --
 
-The WebAuth module for Drupal will only work properly on a server that has the 
+The WebAuth module for Drupal will only work properly on a server that has the
 WebAuth module for Apache and the WebAuth LDAP module for Apache installed and
 properly configured. This includes Stanford's central Web infrastructure
 (www.stanford.edu) and most of IT Services-maintained web servers.
@@ -73,7 +71,7 @@ restrict that further if you want.
 
 -- TROUBLESHOOTING --
 
-If you encounter any issues while using this module at Stanford, 
+If you encounter any issues while using this module at Stanford,
 please send a message to:
 
 drupallers@lists.stanford.edu

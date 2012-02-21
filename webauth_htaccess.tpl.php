@@ -1,5 +1,3 @@
-# $Id$
-
 AuthType WebAuth
 WebAuthLdapAttribute displayName
 WebAuthLdapAttribute suAffiliation

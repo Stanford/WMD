@@ -1,6 +1,4 @@
 <?php
-// $Id: webauth.install 1808 2010-03-18 17:32:58Z ksharp $
-
 /**
  * Implementation of hook_requirements()
  *
@@ -106,7 +104,7 @@ function webauth_uninstall() {
   variable_del('webauth_require_users');
   variable_del('webauth_require_valid_user');
   variable_del('webauth_restrict_message');
- 
+
   // restore the site_403 variable, but only if this module modified it
   $site_403 = variable_get('site_403','');
   if ($site_403 == 'webauth/403') {

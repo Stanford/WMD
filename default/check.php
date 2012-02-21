@@ -1,6 +1,4 @@
 <?php
-// $Id: wa_check.inc 811 2008-06-18 23:13:46Z ksharp $
-
 /**
  * @file
  * Returns webauth information to the Drupal webauth module
@@ -19,7 +17,7 @@ foreach ($vars as $key => $value) {
   }
 
   if ($key == 'REMOTE_USER') {
-	  header('wa_remote_user: ' . $value);
+    header('wa_remote_user: ' . $value);
   }
 }
 

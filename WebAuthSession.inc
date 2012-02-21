@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file WebAuthSession
  *
@@ -245,14 +244,14 @@ class WebAuthSession {
 
     // Save query for later use.
     $query = '';
-	$temp_query = $_GET;
+    $temp_query = $_GET;
 
-	// don't save q or destination
-	unset($temp_query['q']);
-	unset($temp_query['destination']);
+    // don't save q or destination
+    unset($temp_query['q']);
+    unset($temp_query['destination']);
 
-	// The string replacement is for aesthetic purposes only
-	$query = str_replace('%2F','/', http_build_query($temp_query, '', '&'));
+    // The string replacement is for aesthetic purposes only
+    $query = str_replace('%2F','/', http_build_query($temp_query, '', '&'));
 
     if ($query != '') {
       if (strpos($this->returnUrl, '?') === FALSE) {
@@ -300,41 +299,41 @@ class WebAuthSession {
       $url['path'] = base_path() . variable_get('webauth_path', conf_path() . '/webauth') . '/check.php';
     }
     $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
-  	if (!$sock) {
-  		drupal_set_message('Unable to authenticate because of socket error: '.$errstr,'error');
-  		return FALSE;
-  	}
-  	fwrite($sock, "GET " . $url['path'] . " HTTP/1.1\r\n");
-  	fwrite($sock, "Host: " . $url['host'] . "\r\n");
-  	fwrite($sock, "Connection: close\r\n");
-  	fwrite($sock, "Cookie: webauth_at=" . urlencode($this->atCookie) . "\r\n");
-  	fwrite($sock, "Accept: */*\r\n");
-  	fwrite($sock, "\r\n");
-  	fwrite($sock, "\r\n");
+    if (!$sock) {
+      drupal_set_message('Unable to authenticate because of socket error: '.$errstr,'error');
+      return FALSE;
+    }
+    fwrite($sock, "GET " . $url['path'] . " HTTP/1.1\r\n");
+    fwrite($sock, "Host: " . $url['host'] . "\r\n");
+    fwrite($sock, "Connection: close\r\n");
+    fwrite($sock, "Cookie: webauth_at=" . urlencode($this->atCookie) . "\r\n");
+    fwrite($sock, "Accept: */*\r\n");
+    fwrite($sock, "\r\n");
+    fwrite($sock, "\r\n");
 
     $return = '';
-  	while (!feof($sock)) {
-  	  $return .= fread($sock, 8192);
-  	}
-  	fclose($sock);
-  	list($this->returnData['headers'],
-  	     $this->returnData['body']) = explode("\r\n\r\n", $return);
+    while (!feof($sock)) {
+      $return .= fread($sock, 8192);
+    }
+    fclose($sock);
+    list($this->returnData['headers'],
+         $this->returnData['body']) = explode("\r\n\r\n", $return);
 
-  	$headers = explode("\r\n", $this->returnData['headers']);
+    $headers = explode("\r\n", $this->returnData['headers']);
     $status = (bool) (strpos($headers[0], 'HTTP/1.1 200 OK') !== FALSE);
     if ($status) {
       $this->loggedIn = TRUE;
-    	foreach ($headers as $header) {
-    		list($hName, $hVal) = explode(': ', $header, 2);
-    		$hName = trim($hName);
-    		$hVal = trim($hVal);
-    		if (substr($hName, 0, 3) == 'wa_') {
-      		$this->headers[$hName] = $hVal;
-    		}
-  	  }
-  	}
-  	else {
-  	  $this->loggedIn = FALSE;
-  	}
+      foreach ($headers as $header) {
+        list($hName, $hVal) = explode(': ', $header, 2);
+        $hName = trim($hName);
+        $hVal = trim($hVal);
+        if (substr($hName, 0, 3) == 'wa_') {
+          $this->headers[$hName] = $hVal;
+        }
+      }
+    }
+    else {
+      $this->loggedIn = FALSE;
+    }
   }
 }
