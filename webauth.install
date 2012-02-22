@@ -1,5 +1,11 @@
 <?php
 /**
+ * @file
+ * Install for webauth module
+ *
+ */
+
+/**
  * Implementation of hook_requirements()
  *
  * Check writability of the webaith directory on install so we don't create a
@@ -31,9 +37,6 @@ function webauth_install() {
   require_once(drupal_get_path('module', 'user') . "/user.admin.inc");
   require_once(drupal_get_path('module', 'webauth') . "/webauth.module");
 
-  // Install our requisite tables.
-  drupal_install_schema('webauth');
-
   // Setup our webauth data path
   $webauth_path = conf_path() . '/webauth';
   variable_set('webauth_path', $webauth_path);
@@ -50,7 +53,7 @@ function webauth_install() {
     $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $role));
     if (!$role_exists) {
       db_query("INSERT INTO {role} (name) VALUES ('%s')", $role);
-      drupal_set_message("Added Role $role");
+      drupal_set_message(st('Added Role @role', array('@role' => $role)));
     }
   }
 
@@ -60,7 +63,7 @@ function webauth_install() {
     if (!empty($group)) {
       if ($rid) {
         db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d, '%s')", $rid, $group);
-        drupal_set_message("Added Group mapping for $role => $group");
+        drupal_set_message(st('Added Group mapping for @role => @group', array('@role' => $role, '@group' => $group)));
       }
       else {
         watchdog('webauth', "Unknown error occurred trying to get rid for @role", array('@role' => $role), WATCHDOG_ERROR);
@@ -90,9 +93,6 @@ function webauth_uninstall() {
   foreach ($result as $wmd) {
     db_query("DELETE FROM {users_roles} WHERE uid = %d and rid = %d", $wmd->uid, $wmd->rid);
   }
-
-  // delete the database tables
-  drupal_uninstall_schema('webauth');
 
   // delete the variables
   variable_del('webauth_allow_local');
@@ -186,9 +186,6 @@ function webauth_update_6300() {
   require_once(drupal_get_path('module', 'user') . "/user.admin.inc");
   require_once(drupal_get_path('module', 'webauth') . "/webauth.module");
 
-  // Install our requisite tables.
-  drupal_install_schema('webauth');
-
   // Setup our webauth data path
   $webauth_path = conf_path() . '/webauth';
   variable_set('webauth_path', $webauth_path);
@@ -205,7 +202,7 @@ function webauth_update_6300() {
     $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $role));
     if (!$role_exists) {
       db_query("INSERT INTO {role} (name) VALUES ('%s')", $role);
-      drupal_set_message("Added Role $role");
+      drupal_set_message(st('Added Role: @role', array('@role' => $role)));
     }
   }
 
@@ -215,10 +212,10 @@ function webauth_update_6300() {
     if (!empty($group)) {
       if ($rid) {
         db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d, '%s')", $rid, $group);
-        drupal_set_message("Added Group mapping for $role => $group");
+        drupal_set_message(st('Added Group mapping for @role => @group', array('@role' => $role, '@group' => $group)));
       }
       else {
-        watchdog('webauth', "Unknown error occurred trying to get rid for @role", array('@role' => $role), WATCHDOG_ERROR);
+        watchdog('webauth', 'Unknown error occurred trying to get rid for @role', array('@role' => $role), WATCHDOG_ERROR);
       }
     }
   }
@@ -243,12 +240,12 @@ function webauth_update_6300() {
 function webauth_update_6301() {
   $ret = array();
   if (module_exists('content_access')) {
-    drupal_set_message("Content Access module detected. Starting webauth access migration.");
+    drupal_set_message(st('Content Access module detected. Starting webauth access migration.'));
     require_once(drupal_get_path('module', 'webauth') . "/webauth.admin.inc");
     webauth_migrate_to_content_access();
   }
   else {
-    drupal_set_message("Content Access module was not found. Skipping migration.");
+    drupal_set_message(st('Content Access module was not found. Skipping migration.'));
   }
   return $ret;
 }

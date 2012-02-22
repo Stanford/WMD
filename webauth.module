@@ -46,7 +46,7 @@ function webauth_boot() {
  * pages for logged in users are not cached in browsers.
  */
 function webauth_init() {
-  global $wa_session, $user;
+  global $_webauth_session, $user;
 
   $is_return_url = (bool) ($_GET['q'] == variable_get('webauth_path', conf_path() . '/webauth') . '/login');
   $no_check_php_loop = (bool) (array_pop(split('/', $_GET['q'])) != 'check.php');
@@ -62,8 +62,8 @@ function webauth_init() {
     // We only want to go further and check the wa_session if this user is
     // authenticated via webauth.
     if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
-      $wa_session = new WebAuthSession();
-      if ($wa_session->isLoggedIn() && !$wa_session->isValidSession()) {
+      $_webauth_session = new WebAuthSession();
+      if ($_webauth_session->isLoggedIn() && !$_webauth_session->isValidSession()) {
         // An invalid webauth token was in found!
         // Destroy the current session:
         session_destroy();
@@ -145,9 +145,9 @@ function webauth_menu() {
  * a normal error message.
  */
 function webauth_error_page() {
-  global $wa_session, $user;
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
+  global $_webauth_session, $user;
+  if (!$_webauth_session) {
+    $_webauth_session = new WebAuthSession();
   }
   if (!$user->uid) {
     $redirect = NULL;
@@ -158,7 +158,7 @@ function webauth_error_page() {
       $redirect = str_replace(base_path(), '', request_uri());
       $redirect = str_replace("?q=", '', $redirect);
     }
-    $wa_session->getWeblogin($redirect);
+    $_webauth_session->getWeblogin($redirect);
   }
   if ($user->uid) {
     drupal_add_http_header('Status', '403 Forbidden');
@@ -183,28 +183,28 @@ function webauth_error_page() {
  * were previously on.
  */
 function webauth_return() {
-  global $wa_session, $user;
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
+  global $_webauth_session, $user;
+  if (!$_webauth_session) {
+    $_webauth_session = new WebAuthSession();
   }
 
   if ($user->uid == 0) {
-    if ($wa_session->isValidSession()) {
+    if ($_webauth_session->isValidSession()) {
       $form_state = array();
-      $form_state['values']['name'] = $wa_session->getSessionData('wa_remote_user');
+      $form_state['values']['name'] = $_webauth_session->getSessionData('wa_remote_user');
       $form_state['values']['pass'] = 'dummy';
       $form_state['weblogin']['server'] = variable_get('webauth_domain', WEBAUTH_DOMAIN);
-      drupal_execute('user_login', $form_state);
+      drupal_form_submit('user_login', $form_state);
     }
     else {
-      return $wa_session->getWeblogin();
+      return $_webauth_session->getWeblogin();
     }
   }
 
-  if (!$wa_session->isValidSession()) {
+  if (!$_webauth_session->isValidSession()) {
     drupal_set_message(t('Unknown error occurred.'));
   }
-  $return = $wa_session->getReturnUrl(TRUE);
+  $return = $_webauth_session->getReturnUrl(TRUE);
   $login = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
   if (substr($return, 0, strlen($login)) == $login) {
     $return = '';
@@ -233,10 +233,10 @@ function webauth_theme($existing, $type, $theme, $path) {
  * hook is invoked. Could be done more tactically.
  */
 function webauth_form_alter(&$form, &$form_state, $form_id) {
-  global $user, $base_url, $wa_session;
+  global $user, $base_url, $_webauth_session;
 
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
+  if (!$_webauth_session) {
+    $_webauth_session = new WebAuthSession();
   }
 
   switch ($form_id) {
@@ -264,7 +264,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       // redirect context, so if we are on the auth path here, we should stop
       // altering at this point.
       //
-      // I don't love this fix, but it's necssary given how the $wa_session
+      // I don't love this fix, but it's necssary given how the $_webauth_session
       // object is constructued at the moment.
       $path = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
       if ($_GET['q'] == $path) {
@@ -273,7 +273,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 
       // Build a link to wa_login.
       $secure_base_url = str_replace('http:', 'https:', $base_url);
-      $webauth_login = $wa_session->getLoginUrl($_GET['q']);
+      $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">',  // make it themable
         '#value' => l(t(variable_get('webauth_link_text', 'Login with your SUNetID')), $webauth_login),
@@ -332,14 +332,14 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
  * This is a helper function to store webauth-derived data for the user account.
  */
 function webauth_update_fields(&$edit, &$account) {
-  global $wa_session;
+  global $_webauth_session;
   global $user;
   if ($user->uid == 0) {
-    if (!$wa_session) {
-      $wa_session = new WebAuthSession();
+    if (!$_webauth_session) {
+      $_webauth_session = new WebAuthSession();
     }
 
-    $mail = $wa_session->getSessionData('wa_ldap_mail');
+    $mail = $_webauth_session->getSessionData('wa_ldap_mail');
     $mail =  isset($mail) ? $mail : $account->name;
     db_query("UPDATE {users} SET mail = '%s' WHERE uid = %d", $mail, $account->uid);
   }
@@ -353,13 +353,13 @@ function webauth_update_fields(&$edit, &$account) {
  * sync up a users roles based on their webauth settings.
  */
 function webauth_grant_roles(&$edit, &$account) {
-  global $wa_session;
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
+  global $_webauth_session;
+  if (!$_webauth_session) {
+    $_webauth_session = new WebAuthSession();
   }
 
-  if ($wa_session->isValidSession()) {
-    $groups = $wa_session->getLdapGroups();
+  if ($_webauth_session->isValidSession()) {
+    $groups = $_webauth_session->getLdapGroups();
     $new = array('roles' => $account->roles);
 
     // Add SUNet User role for all valid users.
@@ -405,11 +405,11 @@ function webauth_grant_roles(&$edit, &$account) {
  * form or block.
  */
 function webauth_login_validate($form, &$form_state) {
-  global $wa_session;
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
+  global $_webauth_session;
+  if (!$_webauth_session) {
+    $_webauth_session = new WebAuthSession();
   }
-  if ($wa_session->isValidSession()) {
+  if ($_webauth_session->isValidSession()) {
     user_external_login_register($form_state['values']['name'] . '@' . $form_state['weblogin']['server'], 'webauth');
     user_authenticate_finalize($form_state['values']);
   }
@@ -419,10 +419,10 @@ function webauth_login_validate($form, &$form_state) {
  * Function to write out our .htaccess file.
  */
 function webauth_write_htaccess() {
-  global $wa_session;
+  global $_webauth_session;
 
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
+  if (!$_webauth_session) {
+    $_webauth_session = new WebAuthSession();
   }
 
   $groups = array();
@@ -455,7 +455,7 @@ function webauth_write_htaccess() {
 
 
   if (!variable_get('clean_url', 0)) {
-    $path = $wa_session->getLoginUrl();
+    $path = $_webauth_session->getLoginUrl();
     $new_path = base_path() . '?q=' . variable_get('webauth_path', conf_path() . '/webauth') . '/login';
     $rewrite_url .= 'RewriteRule login(.*)$ ' . $new_path . '$1 [L,R=301]';
   }

@@ -1,6 +1,8 @@
 <?php
 /**
- * webauth.admin.inc
+ * @file
+ * Admin menus for webauth module
+ *
  */
 
 function webauth_admin_settings() {
@@ -133,7 +135,7 @@ function webauth_admin_groups_submit($form, &$form_state) {
     // Remove mapping
     $warid = drupal_substr($form_state['clicked_button']['#name'], 13);
     db_query("DELETE FROM {webauth_roles} WHERE warid = %d", $warid);
-    drupal_set_message("Removed WebAuth mapping from table. [ID: $warid]");
+    drupal_set_message(t('Removed WebAuth mapping from table. [ID: @warid]', array('@warid' => $warid)));
     // Clear out any roles that were granted as a result.
     $result = db_query("SELECT * FROM {webauth_roles_history} WHERE warid = %d", $warid);
     while ($history = db_fetch_object($result)) {
@@ -193,13 +195,13 @@ function webauth_admin_users_validate($form, &$form_state) {
   foreach ($userlines as $line) {
     $line = chop($line);
     if ($line != '' && preg_match("/^[\w\d-_]+$/", $line) != 1) {
-      form_set_error('webauth_require_users', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
+      form_set_error('webauth_require_users', t('@line is not a valid user format. Please enter one username per line.', array('@line' => $line)));
     }
   }
   foreach ($grouplines as $line) {
     $line = chop($line);
     if ($line != '' && preg_match("/^[-_\w\d\~]+:[\w\d-_]+$/", $line) != 1) {
-      form_set_error('webauth_require_privgroups', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
+      form_set_error('webauth_require_privgroups', t('@line is not a valid user format. Please enter one username per line.', array('@line' => $line)));
     }
   }
 
@@ -244,12 +246,12 @@ function webauth_migrate_to_content_access() {
           $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $sugroup));
           if (!$role_exists) {
             db_query("INSERT INTO {role} (name) VALUES ('%s')", $sugroup);
-            drupal_set_message(t('Added Role $sugroup'));
+            drupal_set_message(t('Added Role: @sugroup', array('@sugroup' => $sugroup)));
           }
           $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", $sugroup));
           if ($rid) {
             db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d, '%s')", $rid, $sugroup);
-            drupal_set_message(t("Added group mapping for $sugroup => $sugroup"));
+            drupal_set_message(t('Added group mapping for @sugroup => @sugroup2', array('@sugroup' => $sugroup, '@sugroup' => $sugroup)));
             $webauth_roles[$rid] = $rid;
           }
         }
@@ -291,6 +293,7 @@ function webauth_migrate_to_content_access() {
   content_access_set_settings($content_access_settings);
   // Rebuild content_access settings.
   content_access_mass_update($types);
-  drupal_set_message(t("You need to rebuild the node access settings now. You can do that !link.", array('!link' => l(t('here'), 'admin/content/node-settings'))), 'error');
+  $link = l(t('here'), 'admin/content/node-settings');
+  drupal_set_message(t("You need to rebuild the node access settings now. You can do that !link.", array('!link' => $link)), 'error');
   node_access_needs_rebuild(TRUE);
 }

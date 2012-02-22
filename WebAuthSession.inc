@@ -191,7 +191,7 @@ class WebAuthSession {
         $this->loadSessionData();
       }
       if (!empty($this->data)) {
-        if (time() <= $this->data['wa_token_expiration'] && $this->isLoggedIn()) {
+        if (REQUEST_TIME <= $this->data['wa_token_expiration'] && $this->isLoggedIn()) {
           return TRUE;
         }
       }
@@ -297,7 +297,7 @@ class WebAuthSession {
     }
     $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
     if (!$sock) {
-      drupal_set_message('Unable to authenticate because of socket error: ' . $errstr, 'error');
+      drupal_set_message(t('Unable to authenticate because of socket error: @error', array('@error' => $errstr)), 'error');
       return FALSE;
     }
     fwrite($sock, "GET " . $url['path'] . " HTTP/1.1\r\n");
