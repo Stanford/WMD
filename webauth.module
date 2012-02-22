@@ -9,7 +9,7 @@ define('WEBAUTH_DOMAIN', 'stanford.edu');
 include_once(dirname(__FILE__) . '/WebAuthSession.inc');
 
 /**
- * Implementation of hook_boot()
+ * Implements hook_boot()
  *
  * This functions very very early, before most of Drupal has even loaded.
  *
@@ -38,7 +38,7 @@ function webauth_boot() {
 
 
 /**
- * Implementation of hook_init().
+ * Implements hook_init().
  *
  * If a user was created via webauth, we validate their session there.
  *
@@ -78,7 +78,7 @@ function webauth_init() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function webauth_menu() {
   $items = array();
@@ -213,7 +213,7 @@ function webauth_return() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function webauth_theme($existing, $type, $theme, $path) {
   return array(
@@ -225,7 +225,7 @@ function webauth_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_form_alter().
  *
  * This insures that user login elements are webauth-enabled.
  *
@@ -296,7 +296,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 
 
 /**
- * Implementation of hook_user().
+ * Implements hook_user().
  */
 function webauth_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {

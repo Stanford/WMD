@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_requirements()
+ * Implements hook_requirements()
  *
  * Check writability of the webaith directory on install so we don't create a
  * broken site.
@@ -31,7 +31,7 @@ function webauth_requirements($phase) {
 }
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function webauth_install() {
   require_once(drupal_get_path('module', 'user') . "/user.admin.inc");
@@ -84,7 +84,7 @@ function webauth_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function webauth_uninstall() {
 
@@ -113,7 +113,7 @@ function webauth_uninstall() {
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function webauth_schema() {
   $schema = array();

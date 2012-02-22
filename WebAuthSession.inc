@@ -1,7 +1,6 @@
 <?php
 /**
- * @file WebAuthSession
- *
+ * @file
  * WMD's session handler.
  *
  */
