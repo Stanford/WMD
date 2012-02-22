@@ -6,7 +6,7 @@
  */
 
 /**
- * Implements hook_requirements()
+ * Implements hook_requirements().
  *
  * Check writability of the webaith directory on install so we don't create a
  * broken site.
@@ -182,7 +182,6 @@ function webauth_schema() {
 }
 
 function webauth_update_6300() {
-  $ret = array();
   require_once(drupal_get_path('module', 'user') . "/user.admin.inc");
   require_once(drupal_get_path('module', 'webauth') . "/webauth.module");
 
@@ -227,7 +226,6 @@ function webauth_update_6300() {
   webauth_write_htaccess();
   copy(drupal_get_path('module', 'webauth') . '/default/.htaccess', variable_get('webauth_path', '') . '/.htaccess');
 
-  return $ret;
 }
 
 /***
@@ -238,7 +236,6 @@ function webauth_update_6300() {
  * main schema setup in 6300.
  */
 function webauth_update_6301() {
-  $ret = array();
   if (module_exists('content_access')) {
     drupal_set_message(st('Content Access module detected. Starting webauth access migration.'));
     require_once(drupal_get_path('module', 'webauth') . "/webauth.admin.inc");
@@ -247,5 +244,4 @@ function webauth_update_6301() {
   else {
     drupal_set_message(st('Content Access module was not found. Skipping migration.'));
   }
-  return $ret;
 }

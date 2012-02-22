@@ -4,4 +4,5 @@ package = WebAuth
 version = 7.x-3.0
 core = 7.x
 project = "webauth"
-#project status url = "https://drupalfeatures.stanford.edu/fserver/webauth/6.x"
+files[] = WebAuthSession.inc
+project status url = "https://drupalfeatures.stanford.edu/fserver/webauth/7.x"

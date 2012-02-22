@@ -1,6 +1,13 @@
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
+WebAuth 7.x-3.0 2012-02-24
+------------------------------
+by eosrei
+- Adjusted whitespace use
+- Corrected coder module warnings
+- Converted module for use with Drupal 7
+
 
 WebAuth 6.x-3.1 2012-02-09
 ------------------------------
@@ -34,7 +41,7 @@ WebAuth 6.x-3.0-beta2 2011-10-03
 
 WebAuth 6.x-3.0-beta1 2011-10-03
 ------------------------------
-by srude, joshkoenig, mrmarco: 
+by srude, joshkoenig, mrmarco:
 
 - Added site-specific WebAuth file location to support multi-site environments
 - Added all logging now uses the watchdog() function
@@ -138,7 +145,7 @@ by ksharp: Information in README regarding Drupal version upgrades and WMD.
 
 WebAuth 6.x-2.42
 ------------------------------
-by ksharp: A new feature where nodes may be set to auto-login through WebAuth 
+by ksharp: A new feature where nodes may be set to auto-login through WebAuth
            when accessed by an anonymous user
 by ksharp: A bug fix which caused an error message when WMD installed with PHP
            versions older than 5.2.0
@@ -158,7 +165,7 @@ by ksharp: Hiding session info from login url
 by ksharp: URL-encoding of forwarded url parameters
 by ksharp: Content-access-restriction feature is now disabled by default.
            Enable it at the admin/settings/webauth page.
-by ksharp: The restricted-content message is now configurable at 
+by ksharp: The restricted-content message is now configurable at
            admin/settings/webauth
 
 
