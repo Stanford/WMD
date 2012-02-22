@@ -90,11 +90,8 @@ class WebAuthSession {
     global $cookie_domain;
 
     $this->domain = $cookie_domain;
-
     $this->name = session_name();
-
     $this->sid = session_id();
-
 
     // Set our authentication redirect URL.
     $this->makeAuthUrl();
@@ -128,7 +125,7 @@ class WebAuthSession {
     }
 
     // write a cookie to the browser - check for PHP version to see whether to include $httpOnly value
-    if (version_compare(PHP_VERSION,'5.2.0') === -1) {
+    if (version_compare(PHP_VERSION, '5.2.0') === -1) {
       setcookie($name, $value, 0, '/', $this->domain, TRUE);
     }
     else {
@@ -251,7 +248,7 @@ class WebAuthSession {
     unset($temp_query['destination']);
 
     // The string replacement is for aesthetic purposes only
-    $query = str_replace('%2F','/', http_build_query($temp_query, '', '&'));
+    $query = str_replace('%2F', '/', http_build_query($temp_query, '', '&'));
 
     if ($query != '') {
       if (strpos($this->returnUrl, '?') === FALSE) {
@@ -300,7 +297,7 @@ class WebAuthSession {
     }
     $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
     if (!$sock) {
-      drupal_set_message('Unable to authenticate because of socket error: '.$errstr,'error');
+      drupal_set_message('Unable to authenticate because of socket error: ' . $errstr, 'error');
       return FALSE;
     }
     fwrite($sock, "GET " . $url['path'] . " HTTP/1.1\r\n");
@@ -317,7 +314,7 @@ class WebAuthSession {
     }
     fclose($sock);
     list($this->returnData['headers'],
-         $this->returnData['body']) = explode("\r\n\r\n", $return);
+      $this->returnData['body']) = explode("\r\n\r\n", $return);
 
     $headers = explode("\r\n", $this->returnData['headers']);
     $status = (bool) (strpos($headers[0], 'HTTP/1.1 200 OK') !== FALSE);
