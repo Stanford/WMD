@@ -23,7 +23,7 @@ function webauth_boot() {
     ini_set('session.cookie_secure', 1);
     $base_url = str_replace('http://', 'https://', $base_url);
     if ($user->uid > 0) {
-      setcookie("WMDsecureLogin", 1, time()+3600, $base_path);
+      setcookie("WMDsecureLogin", 1, REQUEST_TIME + 3600, $base_path);
     }
   }
   elseif ($_COOKIE["WMDsecureLogin"]) {
@@ -69,7 +69,7 @@ function webauth_init() {
         session_destroy();
         // Only variables can be passed by reference workaround.
         $null = NULL;
-        user_module_invoke('logout', $null, $user);
+        user_module_invoke('user/logout', $null, $user);
         // Load the anonymous user
         $user = drupal_anonymous_user();
       }
@@ -154,20 +154,22 @@ function webauth_error_page() {
     if (trim(variable_get('webauth_destination', '')) != '') {
       $redirect = trim(variable_get('webauth_destination', ''));
     }
-    elseif (isset($_SERVER['REQUEST_URI'])) {
-      $redirect = str_replace(base_path(), '', $_SERVER['REQUEST_URI']);
+    else {
+      $redirect = str_replace(base_path(), '', request_uri());
       $redirect = str_replace("?q=", '', $redirect);
     }
     $wa_session->getWeblogin($redirect);
   }
   if ($user->uid) {
-    drupal_set_header('HTTP/1.1 403 Forbidden');
+    drupal_add_http_header('Status', '403 Forbidden');
     drupal_set_title(t('Access denied'));
     $webauth_restrict_message = trim(filter_xss_admin(variable_get('webauth_restrict_message', 'This content has been restricted by the author or by the site administrator.')));
     if (empty($webauth_restrict_message)) {
       drupal_access_denied();
     }
     else {
+      // D7 port: "Line 171: Instead of "theme('page')" use drupal_set_page_content (Drupal Docs)"
+      // The recommended change will break this functionality, so a better method should be determined.
       print theme('page', $webauth_restrict_message);
     }
     exit;
@@ -272,10 +274,9 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       // Build a link to wa_login.
       $secure_base_url = str_replace('http:', 'https:', $base_url);
       $webauth_login = $wa_session->getLoginUrl($_GET['q']);
-      $wa_url = l(variable_get('webauth_link_text', 'Login with your SUNetID'), $webauth_login);
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">',  // make it themable
-        '#value' => $wa_url,
+        '#value' => l(t(variable_get('webauth_link_text', 'Login with your SUNetID')), $webauth_login),
         '#suffix' => '</div>',
         '#weight' => -10
       );
@@ -320,7 +321,7 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
     case 'logout':
       if (isset($_COOKIE['WMDsecureLogin'])) {
         unset($_COOKIE['WMDsecureLogin']);
-        setcookie('WMDsecureLogin', '', time() - 3600);
+        setcookie('WMDsecureLogin', '', REQUEST_TIME - 3600);
       }
       unset($_SESSION['wa_session_data']);
       unset($_SESSION['wa_return_url']);
