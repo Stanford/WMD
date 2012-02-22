@@ -6,7 +6,7 @@
  */
 
 define('WEBAUTH_DOMAIN', 'stanford.edu');
-include_once(dirname(__FILE__) . '/WebAuthSession.inc');
+include_once DRUPAL_ROOT . '/' . dirname(__FILE__) . '/WebAuthSession.inc';
 
 /**
  * Implements hook_boot().
@@ -61,7 +61,7 @@ function webauth_init() {
     header("Cache-Control: no-store, no-cache, must-revalidate");
     // We only want to go further and check the wa_session if this user is
     // authenticated via webauth.
-    if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
+    if (db_query("SELECT * FROM {authmap} WHERE uid = :uid and module = :module", array(':uid' => $user->uid, ':module' => 'webauth'))->fetchField()) {
       $_webauth_session = new WebAuthSession();
       if ($_webauth_session->isLoggedIn() && !$_webauth_session->isValidSession()) {
         // An invalid webauth token was in found!
@@ -98,7 +98,7 @@ function webauth_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/webauth'] = array(
+  $items['admin/config/webauth'] = array(
     'title' => 'WebAuth',
     'description' => 'Authenticate through Stanford WebAuth',
     'page callback' => 'drupal_get_form',
@@ -107,13 +107,13 @@ function webauth_menu() {
     'file' => 'webauth.admin.inc',
   );
 
-  $items['admin/settings/webauth/settings'] = array(
+  $items['admin/config/webauth/settings'] = array(
     'title' => 'WebAuth Settings',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
 
-  $items['admin/settings/webauth/authorizations'] = array(
+  $items['admin/config/webauth/authorizations'] = array(
     'title' => 'Authorizations',
     'description' => 'Edit the users and groups that are required for access.',
     'page callback' => 'drupal_get_form',
@@ -124,7 +124,7 @@ function webauth_menu() {
     'weight' => 1,
   );
 
-  $items['admin/settings/webauth/mappings'] = array(
+  $items['admin/config/webauth/mappings'] = array(
     'title' => 'Role Mappings',
     'description' => 'Edit the groups that can use WebAuth for content access.',
     'page callback' => 'drupal_get_form',
@@ -170,6 +170,7 @@ function webauth_error_page() {
     else {
       // D7 port: "Line 171: Instead of "theme('page')" use drupal_set_page_content (Drupal Docs)"
       // The recommended change will break this functionality, so a better method should be determined.
+      // TODO Please change this theme call as discussed at http://drupal.org/node/224333#theme_page.
       print theme('page', $webauth_restrict_message);
     }
     exit;
@@ -218,7 +219,7 @@ function webauth_return() {
 function webauth_theme($existing, $type, $theme, $path) {
   return array(
     'webauth_htaccess' => array(
-      'arguments' => array('groups' => NULL, 'require_valid_user' => NULL, 'users' => NULL, 'privgroups' => NULL, 'rewrite_url' => NULL),
+      'variables' => array('groups' => NULL, 'require_valid_user' => NULL, 'users' => NULL, 'privgroups' => NULL, 'rewrite_url' => NULL),
       'template' => 'webauth_htaccess',
     ),
   );
@@ -275,10 +276,10 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       $secure_base_url = str_replace('http:', 'https:', $base_url);
       $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
       $form['webauth_link'] = array(
-        '#prefix' => '<div id="webauth-link">',  // make it themable
+        '#prefix' => '<div id="webauth-link">', // make it themable
         '#value' => l(t(variable_get('webauth_link_text', 'Login with your SUNetID')), $webauth_login),
         '#suffix' => '</div>',
-        '#weight' => -10
+        '#weight' => -10,
       );
 
       if ($form_id == 'user_login_block') {
@@ -299,7 +300,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
  */
 function webauth_user_login(&$edit, &$account) {
   // If this is a WebAuth account, check for roles and re-grant new roles.
-  if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $account->uid))) {
+  if (db_query("SELECT * FROM {authmap} WHERE uid = :uid and module = :module", array(':uid' => $account->uid, ':module' => 'webauth'))->fetchField()) {
     webauth_grant_roles($edit, $account);
   }
 }
@@ -315,7 +316,9 @@ function webauth_user_insert(&$edit, &$account, $category) {
  * Implements hook_user_delete().
  */
 function hook_user_delete($account) {
-  db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
+  db_delete('webauth_roles_history')
+    ->condition('uid', $account->uid)
+    ->execute();
 }
 
 /**
@@ -346,7 +349,12 @@ function webauth_update_fields(&$edit, &$account) {
 
     $mail = $_webauth_session->getSessionData('wa_ldap_mail');
     $mail =  isset($mail) ? $mail : $account->name;
-    db_query("UPDATE {users} SET mail = '%s' WHERE uid = %d", $mail, $account->uid);
+    db_update('users')
+      ->fields(array(
+        'mail' => $mail,
+      ))
+      ->condition('uid', $account->uid)
+      ->execute();
   }
 }
 
@@ -368,7 +376,7 @@ function webauth_grant_roles(&$edit, &$account) {
     $new = array('roles' => $account->roles);
 
     // Add SUNet User role for all valid users.
-    $default_name = db_result(db_query("SELECT name FROM {role} WHERE rid = %d", variable_get('webauth_default_role', 0)));
+    $default_name = db_query("SELECT name FROM {role} WHERE rid = :rid", array(':rid' => variable_get('webauth_default_role', 0)))->fetchField();
     if (variable_get('webauth_default_role', 0) != 0 && !isset($new['roles'][variable_get('webauth_default_role', 0)])) {
       $new['roles'][variable_get('webauth_default_role', 0)] = $default_name;
     }
@@ -385,18 +393,33 @@ function webauth_grant_roles(&$edit, &$account) {
         $new['roles'][$role->rid] = $role->name;
         $data['webauth_assigned_roles'][$role->rid] = $role->name;
         $current[$role->rid] = $role->rid;
-        db_query("DELETE FROM {webauth_roles_history} WHERE warid = %d AND uid = %d", $role->warid, $account->uid);
-        db_query("INSERT INTO {webauth_roles_history} (warid, uid, rid) VALUES (%d, %d, %d)", $role->warid, $account->uid, $role->rid);
+        db_delete('webauth_roles_history')
+          ->condition('warid', $role->warid)
+          ->condition('uid', $account->uid)
+          ->execute();
+        $id = db_insert('webauth_roles_history')
+          ->fields(array(
+            'warid' => $role->warid,
+            'uid' => $account->uid,
+            'rid' => $role->rid,
+          ))
+          ->execute();
       }
     }
     // Close out any groups they shouldn't have access to.
-    $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d", $account->uid);
+    $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = :uid", array(':uid' => $account->uid));
     while ($role = db_fetch_object($result)) {
       if (!isset($current[$role->rid])) {
         unset($data['webauth_assigned_roles'][$role->rid]);
         unset($new['roles'][$role->rid]);
-        db_query("DELETE FROM {webauth_roles_history} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
-        db_query("DELETE FROM {users_roles} WHERE uid = %d AND rid = %d", $account->uid, $role->rid);
+        db_delete('webauth_roles_history')
+          ->condition('uid', $account->uid)
+          ->condition('rid', $role->rid)
+          ->execute();
+        db_delete('users_roles')
+          ->condition('uid', $account->uid)
+          ->condition('rid', $role->rid)
+          ->execute();
       }
     }
 
@@ -435,8 +458,8 @@ function webauth_write_htaccess() {
   $rewrite_url = '';
 
   // Get all the available groups
-  $result = db_query("SELECT DISTINCT(wa_group) AS `group` FROM {webauth_roles} WHERE rid > 2");
-  while ($group = db_result($result)) {
+  $result = db_query("SELECT DISTINCT(wa_group) AS `group` FROM {webauth_roles} WHERE rid > :rid", array(':rid' => 2));
+  while ($group = $result->fetchField()) {
     $groups[] = $group;
   }
 
@@ -466,7 +489,7 @@ function webauth_write_htaccess() {
   }
 
   // Theme contents of the .htaccess file.
-  $htaccess_file = theme('webauth_htaccess', $groups, variable_get('webauth_require_valid_user', 0), $user_list, $privgroup_list, $rewrite_url);
+  $htaccess_file = theme('webauth_htaccess', array('groups' => $groups, 'require_valid_user' => variable_get('webauth_require_valid_user', 0), 'users' => $user_list, 'privgroups' => $privgroup_list, 'rewrite_url' => $rewrite_url));
 
   // Get the path or create it inside the files dir.
   $webauth_path = variable_get('webauth_path', conf_path() . '/webauth');

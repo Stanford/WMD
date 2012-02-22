@@ -167,7 +167,7 @@ class WebAuthSession {
     if (isset($_SESSION['wa_session_data'])) {
       $this->data = $_SESSION['wa_session_data'];
     }
-    elseif ($this->isLoggedIn())  {
+    elseif ($this->isLoggedIn()) {
       $this->getHeaderData();
       foreach ($this->headers as $k => $v) {
         // Check for WA_LDAPPRIVGROUP.

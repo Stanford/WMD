@@ -5,9 +5,13 @@
  *
  */
 
-function webauth_admin_settings() {
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function webauth_admin_settings($form, &$form_state) {
 
-  $result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
+  $result = db_query('SELECT rid, name FROM {role} WHERE rid > :rid', array(':rid' => 2));
   $roles = array();
   while ($role = db_fetch_object($result)) {
     $roles[$role->rid] = $role->name;
@@ -18,22 +22,27 @@ function webauth_admin_settings() {
     '#type' => 'radios',
     '#title' => t('Stanford WebAuth options'),
     '#default_value' => variable_get('webauth_allow_local', 1),
-    '#options' => array(0 => t('Hide Local Drupal Accounts'), 1 => t('Allow Local Drupal Accounts')),
+    '#options' => array(
+      0 => t('Hide Local Drupal Accounts'),
+      1 => t('Allow Local Drupal Accounts'),
+    ),
     '#description' => t('Hide Local Drupal Accounts will allow users to only login through Stanford WebLogin.'),
   );
   $form['webauth_link_text'] = array(
     '#type' => 'textfield',
     '#title' => t('WebLogin Link Text'),
-    '#size' => 80, '#maxlength' => 255,
+    '#size' => 80,
+    '#maxlength' => 255,
     '#default_value' => variable_get('webauth_link_text', 'Login with your SUNetID'),
-    '#description' => t('The text which is displayed as the link to the WebLogin page for SUNetID users.')
+    '#description' => t('The text which is displayed as the link to the WebLogin page for SUNetID users.'),
   );
   $form['webauth_destination'] = array(
     '#type' => 'textfield',
     '#title' => t('Post-Login Destination'),
-    '#size' => 80, '#maxlength' => 255,
+    '#size' => 80,
+    '#maxlength' => 255,
     '#default_value' => variable_get('webauth_destination', ''),
-    '#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.')
+    '#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.'),
   );
 
   $form['webauth_restrict_message'] = array(
@@ -42,20 +51,23 @@ function webauth_admin_settings() {
     '#cols' => 80,
     '#rows' => 5,
     '#default_value' => variable_get('webauth_restrict_message', 'This content has been restricted by the author or by the site administrator.'),
-    '#description' => t('Message to be displayed to user when access to content is restricted.')
+    '#description' => t('Message to be displayed to user when access to content is restricted.'),
   );
 
   return system_settings_form($form);
 }
 
-function webauth_admin_groups(&$form_state) {
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function webauth_admin_groups($form, &$form_state) {
 
-  $form = array();
   $groups = array();
   $table = array();
   $submitted = !empty($form_state['post']);
 
-  $result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
+  $result = db_query('SELECT rid, name FROM {role} WHERE rid > :rid', array(':rid' => : rid, '' => array(':rid' => 2)));
   while ($role = db_fetch_object($result)) {
     $roles[$role->rid] = $role->name;
   }
@@ -89,12 +101,12 @@ function webauth_admin_groups(&$form_state) {
     $form['new_submit']['#suffix'] = '</td><td>';
     $form['cancel'] = array(
       '#type' => 'markup',
-      '#value' => l(t('Cancel'), 'admin/settings/webauth/mappings'),
+      '#value' => l(t('Cancel'), 'admin/config/webauth/mappings'),
       '#suffix' => '</td></tr></table>',
     );
   }
 
-  $result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > 2");
+  $result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > :r.rid", array(':r.rid' => : r . rid, '' => array(':r.rid' => 2)));
   while ($group = db_fetch_object($result)) {
     $button_id = 'remove_warid_' . $group->warid;
     $form[$button_id] = array(
@@ -107,54 +119,81 @@ function webauth_admin_groups(&$form_state) {
   }
   $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
   $form['output'] = array(
-    '#value' => theme('table', $header, $table),
+    '#value' => theme('table', array('header' => array(
+      'header' => $header,
+      'rows' => $table,
+    ))),
   );
 
   return $form;
 }
 
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
 function webauth_admin_groups_validate($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Add Mapping')) {
     if (preg_match("/^[-_\w\d\~]+:[\w\d-_]+$/", $form_state['values']['new_group']) == 0) {
       form_set_error('new_group', t('There was an error in your group name.  Please make sure you entered it correctly.'));
     }
-    if (db_result(db_query("SELECT * FROM {webauth_roles} WHERE rid = %d AND wa_group = '%s'", $form_state['values']['new_rid'], $form_state['values']['new_group']))) {
+    $query = db_query("SELECT * FROM {webauth_roles} WHERE rid = :rid AND wa_group = :wa_group",
+      array(':rid' => $form_state['values']['new_rid'], ':wa_group' => $form_state['values']['new_group']));
+    if ($query->fetchField()) {
       form_set_error('new_group', t('This webauth group is already mapped to this Drupal role!'));
     }
   }
 }
 
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
 function webauth_admin_groups_submit($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Add Mapping')) {
     // Add mapping
-    db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d,'%s')", $form_state['values']['new_rid'], $form_state['values']['new_group']);
-    $role_name = db_result(db_query("SELECT name FROM {role} WHERE rid = %d", $form_state['values']['new_rid']));
-    drupal_set_message(t('Added new WebAuth mapping: @role_name => @new_group', array('@role_name' => $role_name, '@new_group' => $form_state['values']['new_group']));
+    $id = db_insert('webauth_roles')
+      ->fields(array(
+        'rid' => $form_state['values']['new_rid'],
+        'wa_group' => $form_state['values']['new_group'],
+      ))
+      ->execute();
+    $role_name = db_query("SELECT name FROM {role} WHERE rid = :rid", array(':rid' => $form_state['values']['new_rid']))->fetchField();
+    drupal_set_message(t('Added new WebAuth mapping: @role_name => @new_group', array('@role_name' => $role_name, '@new_group' => $form_state['values']['new_group'])));
   }
   elseif ($form_state['clicked_button']['#value'] == t('Remove Mapping')) {
     // Remove mapping
     $warid = drupal_substr($form_state['clicked_button']['#name'], 13);
-    db_query("DELETE FROM {webauth_roles} WHERE warid = %d", $warid);
+    db_delete('webauth_roles')
+      ->condition('warid', $warid)
+      ->execute();
     drupal_set_message(t('Removed WebAuth mapping from table. [ID: @warid]', array('@warid' => $warid)));
     // Clear out any roles that were granted as a result.
-    $result = db_query("SELECT * FROM {webauth_roles_history} WHERE warid = %d", $warid);
+    $result = db_query("SELECT * FROM {webauth_roles_history} WHERE warid = :warid", array(':warid' => $warid));
     while ($history = db_fetch_object($result)) {
       // See if there's another mapping for this role.
-      if (!db_result(db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d AND rid = %d AND warid <> %d", $history->uid, $history->rid, $warid))) {
+      if (!db_query("SELECT * FROM {webauth_roles_history} WHERE uid = :uid AND rid = :rid AND warid <> :warid", array(':uid' => $history->uid, ':rid' => $history->rid, ':warid' => $warid))->fetchField()) {
         // If not, nix the users_roles value so they lose privileges immediately.
-        db_query("DELETE FROM {users_roles} WHERE uid = %d AND rid = %d", $history->uid, $history->rid);
+        db_delete('users_roles')
+          ->condition('uid', $history->uid)
+          ->condition('rid', $history->rid)
+          ->execute();
       }
     }
-    db_query("DELETE FROM {webauth_roles_history} WHERE warid = %d", $warid);
+    db_delete('webauth_roles_history')
+      ->condition('warid', $warid)
+      ->execute();
   }
 
   // Need to update the .htaccess file.
   webauth_write_htaccess();
 }
 
-function webauth_admin_users(&$form_state) {
-
-  $form = array();
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function webauth_admin_users($form, &$form_state) {
 
   $form['webauth_require_valid_user'] = array(
     '#type' => 'checkbox',
@@ -211,6 +250,10 @@ function webauth_admin_users_validate($form, &$form_state) {
 
 }
 
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
 function webauth_admin_users_submit($form, &$form_state) {
   // Need to update the .htaccess file.
   webauth_write_htaccess();
@@ -223,8 +266,8 @@ function webauth_admin_users_submit($form, &$form_state) {
  */
 function webauth_migrate_to_content_access() {
   // make sure content_access is loaded in case this is during an update hook
-  require_once(drupal_get_path('module', 'content_access') . "/content_access.module");
-  require_once(drupal_get_path('module', 'content_access') . "/content_access.admin.inc");
+  require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'content_access') . "/content_access.module";
+  require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'content_access') . "/content_access.admin.inc";
 
   $types = array(); // we will need to track node types touched so they're enabled.
   $default_role = variable_get('webauth_default_role', 0);
@@ -238,19 +281,28 @@ function webauth_migrate_to_content_access() {
       $sugroups = explode(',', $webauth_access->sugroups);
       foreach ($sugroups as $sugroup) {
         $sugroup = trim($sugroup);
-        $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = '%s'", $sugroup));
+        $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = :wa_group", array(':wa_group' => $sugroup)));
         if ($wa_mapped_role->rid) {
           $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
         }
         else {
-          $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $sugroup));
+          $role_exists = (bool) db_query("SELECT COUNT(*) FROM {role} WHERE name = :name", array(':name' => $sugroup))->fetchField();
           if (!$role_exists) {
-            db_query("INSERT INTO {role} (name) VALUES ('%s')", $sugroup);
+            $id = db_insert('role')
+              ->fields(array(
+                'name' => $sugroup,
+              ))
+              ->execute();
             drupal_set_message(t('Added Role: @sugroup', array('@sugroup' => $sugroup)));
           }
-          $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", $sugroup));
+          $rid = db_query("SELECT rid FROM {role} WHERE name = :name", array(':name' => $sugroup))->fetchField();
           if ($rid) {
-            db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d, '%s')", $rid, $sugroup);
+            $id = db_insert('webauth_roles')
+              ->fields(array(
+                'rid' => $rid,
+                'wa_group' => $sugroup,
+              ))
+              ->execute();
             drupal_set_message(t('Added group mapping for @sugroup => @sugroup2', array('@sugroup' => $sugroup, '@sugroup' => $sugroup)));
             $webauth_roles[$rid] = $rid;
           }
