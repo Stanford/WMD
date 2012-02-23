@@ -1,8 +1,8 @@
-WMD - WebAuth Module for Drupal 6.x
+WMD - WebAuth Module for Drupal 7.x
 
 -- SUMMARY --
 
-Authors: Ken Sharp, Steve Rude, Josh Koenig, Marco Wise
+Authors: Ken Sharp, Steve Rude, Josh Koenig, Marco Wise, Brad Erickson
 
 The WebAuth Module for Drupal (also known as WMD) implements external logins
 using Stanford's WebAuth. It automatically creates new users accounts and
@@ -31,6 +31,10 @@ If you are installing the Apached module on your own server see
 http://webauth.stanford.edu/ for more information. The developers of the
 Drupal module don't have access to help you install the Apache module.
 
+We strongly suggest you also install and enable the Content Access module
+(http://drupal.org/project/content_access)
+
+
 -- INSTALLATION --
 
 Download and extract the module's package in your sites/all/modules directory.
@@ -46,13 +50,6 @@ At install time, WebAuth will do the following for you:
 * create mappings from the appropriate workgroups to the roles it created
 * add a login link to the login block
 * allow any valid user with a SUNetID to login to your site using WebAuth
-
--- UPGRADE --
-
-If you are upgrading from 2.x to 3.x, we strongly suggest you also install
-and enable the Content Access module (http://drupal.org/project/content_access)
-
-TODO: More detailed instructions
 
 -- CONFIGURATION --
 
