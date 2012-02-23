@@ -141,8 +141,12 @@ class WebAuthSession {
   }
 
   public function getSessionData($key = NULL) {
-    if (!empty($key)) {
+    if (isset($this->data[$key]) && !empty($key)) {
       return $this->data[$key];
+    }
+    elseif (!empty($key)) {
+      // If set but not available.
+      return NULL;
     }
     else {
       return $this->data;
@@ -203,7 +207,7 @@ class WebAuthSession {
   }
 
   public function getLdapGroups() {
-    return $this->data['ldap_groups'] ? $this->data['ldap_groups'] : array();
+    return isset($this->data['ldap_groups']) ? $this->data['ldap_groups'] : array();
   }
 
   public function getAtCookie() {

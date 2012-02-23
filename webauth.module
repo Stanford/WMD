@@ -439,7 +439,7 @@ function webauth_login_validate($form, &$form_state) {
   }
   if ($_webauth_session->isValidSession()) {
     user_external_login_register($form_state['values']['name'] . '@' . $form_state['weblogin']['server'], 'webauth');
-    user_authenticate_finalize($form_state['values']);
+    user_login_finalize($form_state['values']);
   }
 }
 
