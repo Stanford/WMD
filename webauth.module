@@ -229,31 +229,30 @@ function webauth_theme($existing, $type, $theme, $path) {
  *
  * This insures that user login elements are webauth-enabled.
  *
- * TODO: it should not be necessary to start a WebAuthSession() every time this
- * hook is invoked. Could be done more tactically.
+ * @todo Create method to set webauth_default_role, or remove.
  */
 function webauth_form_alter(&$form, &$form_state, $form_id) {
   global $user, $base_url, $_webauth_session;
 
-  if (!$_webauth_session) {
-    $_webauth_session = new WebAuthSession();
-  }
 
   switch ($form_id) {
     case 'user_profile_form':
-      $account = $form['_account']['#value'];
+      $account = $form['#user'];
       if (!empty($account->roles)) {
         if (in_array(variable_get('webauth_default_role', ''), array_keys($account->roles))) {
           // Hide elements for SUNet Users.
           $form['account']['name']['#type'] = 'hidden';
-          $form['account']['name']['#value'] = $form['_account']['#value']->name;
+          $form['account']['name']['#value'] = $account->name;
           $form['account']['pass']['#type'] = 'hidden';
         }
       }
       break;
     case 'user_login_block':
     case 'user_login':
-
+      // Create a webauth session if needed and not already created.
+      if (!$_webauth_session) {
+        $_webauth_session = new WebAuthSession();
+      }
       if (isset($form_state['weblogin']['server'])) {
         $form['#validate'] = array(
           'user_login_name_validate',
