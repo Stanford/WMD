@@ -13,10 +13,9 @@ function webauth_admin_settings($form, &$form_state) {
 
   $result = db_query('SELECT rid, name FROM {role} WHERE rid > :rid', array(':rid' => 2));
   $roles = array();
-  while ($role = db_fetch_object($result)) {
+  while ($role = $result->fetchObject()) {
     $roles[$role->rid] = $role->name;
   }
-
 
   $form['webauth_allow_local'] = array(
     '#type' => 'radios',
@@ -62,13 +61,11 @@ function webauth_admin_settings($form, &$form_state) {
  * @see http://drupal.org/node/1354
  */
 function webauth_admin_groups($form, &$form_state) {
-
-  $groups = array();
   $table = array();
   $submitted = !empty($form_state['post']);
 
-  $result = db_query('SELECT rid, name FROM {role} WHERE rid > :rid', array(':rid' => : rid, '' => array(':rid' => 2)));
-  while ($role = db_fetch_object($result)) {
+  $result = db_query('SELECT rid, name FROM {role} WHERE rid > 2');
+  while ($role = $result->fetchObject()) {
     $roles[$role->rid] = $role->name;
   }
 
@@ -106,8 +103,8 @@ function webauth_admin_groups($form, &$form_state) {
     );
   }
 
-  $result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > :r.rid", array(':r.rid' => : r . rid, '' => array(':r.rid' => 2)));
-  while ($group = db_fetch_object($result)) {
+  $result = db_query("SELECT wr.warid, r.name, wr.wa_group as `group` FROM {webauth_roles} wr INNER JOIN {role} r ON wr.rid = r.rid WHERE r.rid > 2");
+  while ($group = $result->fetchObject()) {
     $button_id = 'remove_warid_' . $group->warid;
     $form[$button_id] = array(
       '#name' => $button_id,
@@ -117,20 +114,23 @@ function webauth_admin_groups($form, &$form_state) {
     $row = array($group->name, $group->group, drupal_render($form[$button_id]));
     $table[] = $row;
   }
-  $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
+  $header = array(
+    t('Drupal Role'),
+    t('SUNet Group'),
+    t('Action')
+  );
   $form['output'] = array(
-    '#value' => theme('table', array('header' => array(
+    '#markup' => theme('table', array(
       'header' => $header,
       'rows' => $table,
-    ))),
+    )),
   );
 
   return $form;
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Validates the webauth_admin_groups form
  */
 function webauth_admin_groups_validate($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Add Mapping')) {
@@ -170,7 +170,7 @@ function webauth_admin_groups_submit($form, &$form_state) {
     drupal_set_message(t('Removed WebAuth mapping from table. [ID: @warid]', array('@warid' => $warid)));
     // Clear out any roles that were granted as a result.
     $result = db_query("SELECT * FROM {webauth_roles_history} WHERE warid = :warid", array(':warid' => $warid));
-    while ($history = db_fetch_object($result)) {
+    while ($history = $result->fetchObject()) {
       // See if there's another mapping for this role.
       if (!db_query("SELECT * FROM {webauth_roles_history} WHERE uid = :uid AND rid = :rid AND warid <> :warid", array(':uid' => $history->uid, ':rid' => $history->rid, ':warid' => $warid))->fetchField()) {
         // If not, nix the users_roles value so they lose privileges immediately.
@@ -273,7 +273,7 @@ function webauth_migrate_to_content_access() {
   $default_role = variable_get('webauth_default_role', 0);
   // The webauth table contains specific mappings, which we should respect.
   $result = db_query("SELECT * FROM {webauth}");
-  while ($webauth_access = db_fetch_object($result)) {
+  while ($webauth_access = $result->fetchObject()) {
     $node = node_load($webauth_access->nid);
     $webauth_roles = unserialize($webauth_access->roles);
 
@@ -281,7 +281,7 @@ function webauth_migrate_to_content_access() {
       $sugroups = explode(',', $webauth_access->sugroups);
       foreach ($sugroups as $sugroup) {
         $sugroup = trim($sugroup);
-        $wa_mapped_role = db_fetch_object(db_query("SELECT * FROM {webauth_roles} WHERE wa_group = :wa_group", array(':wa_group' => $sugroup)));
+        $wa_mapped_role = db_query("SELECT * FROM {webauth_roles} WHERE wa_group = :wa_group", array(':wa_group' => $sugroup))->fetchObject();
         if ($wa_mapped_role->rid) {
           $webauth_roles[$wa_mapped_role->rid] = $wa_mapped_role->rid;
         }
@@ -333,7 +333,7 @@ function webauth_migrate_to_content_access() {
       'delete' => array(),
       'delete_own' => array(),
     );
-    while ($webauth_force = db_fetch_object($result)) {
+    while ($webauth_force = $result->fetchObject()) {
       $node = node_load($webauth_force->nid);
       content_access_save_per_node_settings($node, $settings);
       $types[$node->type] = 1;

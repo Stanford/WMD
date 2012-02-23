@@ -207,7 +207,7 @@ class WebAuthSession {
   }
 
   public function getAtCookie() {
-    if ($_COOKIE['webauth_at']) {
+    if (isset($_COOKIE['webauth_at']) && $_COOKIE['webauth_at']) {
       $this->atCookie = $_COOKIE['webauth_at'];
     }
   }

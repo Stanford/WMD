@@ -6,7 +6,7 @@
  */
 
 define('WEBAUTH_DOMAIN', 'stanford.edu');
-include_once DRUPAL_ROOT . '/' . dirname(__FILE__) . '/WebAuthSession.inc';
+#include_once dirname(__FILE__) . '/WebAuthSession.inc';
 
 /**
  * Implements hook_boot().
@@ -26,7 +26,7 @@ function webauth_boot() {
       setcookie("WMDsecureLogin", 1, REQUEST_TIME + 3600, $base_path);
     }
   }
-  elseif ($_COOKIE["WMDsecureLogin"]) {
+  elseif (isset($_COOKIE["WMDsecureLogin"]) && $_COOKIE["WMDsecureLogin"]) {
     // An session seems to exist, but we are not in HTTPs.
     // Redirect so we can start secure session.
     global $base_url, $base_path;
@@ -49,7 +49,7 @@ function webauth_init() {
   global $_webauth_session, $user;
 
   $is_return_url = (bool) ($_GET['q'] == variable_get('webauth_path', conf_path() . '/webauth') . '/login');
-  $no_check_php_loop = (bool) (array_pop(split('/', $_GET['q'])) != 'check.php');
+  $no_check_php_loop = (bool) (array_pop(explode('/', $_GET['q'])) != 'check.php');
   $access_denied_page = variable_get('site_403', '');
 
   // Update our access denied page.
@@ -65,7 +65,7 @@ function webauth_init() {
       $_webauth_session = new WebAuthSession();
       if ($_webauth_session->isLoggedIn() && !$_webauth_session->isValidSession()) {
         // An invalid webauth token was in found!
-        // Destroy the current session:
+        // Destroy the current session
         session_destroy();
         // Only variables can be passed by reference workaround.
         $null = NULL;
@@ -324,7 +324,7 @@ function hook_user_delete($account) {
 /**
  * Implements hook_user_logout().
  */
-function hook_user_delete($account) {
+function hook_user_logout($account) {
   if (isset($_COOKIE['WMDsecureLogin'])) {
     unset($_COOKIE['WMDsecureLogin']);
     setcookie('WMDsecureLogin', '', REQUEST_TIME - 3600);
@@ -388,7 +388,7 @@ function webauth_grant_roles(&$edit, &$account) {
 
     // Find all roles that are in the webauth_roles table and add any ones that user is in.
     $result = db_query("SELECT r.rid, r.name, wr.wa_group AS `group`, wr.warid FROM {webauth_roles} wr INNER JOIN {role} r ON r.rid = wr.rid");
-    while ($role = db_fetch_object($result)) {
+    while ($role = $result->fetchObject()) {
       if (in_array($role->group, $groups)) {
         $new['roles'][$role->rid] = $role->name;
         $data['webauth_assigned_roles'][$role->rid] = $role->name;
@@ -408,7 +408,7 @@ function webauth_grant_roles(&$edit, &$account) {
     }
     // Close out any groups they shouldn't have access to.
     $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = :uid", array(':uid' => $account->uid));
-    while ($role = db_fetch_object($result)) {
+    while ($role = $result->fetchObject()) {
       if (!isset($current[$role->rid])) {
         unset($data['webauth_assigned_roles'][$role->rid]);
         unset($new['roles'][$role->rid]);
