@@ -253,7 +253,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       break;
     case 'user_login_block':
     case 'user_login':
-      debug($form_state);
+
       if (isset($form_state['weblogin']['server'])) {
         $form['#validate'] = array(
           'user_login_name_validate',
