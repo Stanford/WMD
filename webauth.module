@@ -182,7 +182,7 @@ function webauth_error_page() {
  * This handles logging a user in and then redirecting them to the page they
  * were previously on.
  */
-function webauth_return() {
+function webauth_return() {echo "dd"; exit;
   global $_webauth_session, $user;
   if (!$_webauth_session) {
     $_webauth_session = new WebAuthSession();
@@ -253,6 +253,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       break;
     case 'user_login_block':
     case 'user_login':
+      debug($form_state);
       if (isset($form_state['weblogin']['server'])) {
         $form['#validate'] = array(
           'user_login_name_validate',
@@ -265,7 +266,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       // altering at this point.
       //
       // I don't love this fix, but it's necssary given how the $_webauth_session
-      // object is constructued at the moment.
+      // object is constructud at the moment.
       $path = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
       if ($_GET['q'] == $path) {
         return;
@@ -276,7 +277,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">', // make it themable
-        '#value' => l(t(variable_get('webauth_link_text', 'Login with your SUNetID')), $webauth_login),
+        '#markup' => l(t(variable_get('webauth_link_text', 'Login with your SUNetID')), $webauth_login),
         '#suffix' => '</div>',
         '#weight' => -10,
       );
