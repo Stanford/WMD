@@ -182,7 +182,7 @@ function webauth_error_page() {
  * This handles logging a user in and then redirecting them to the page they
  * were previously on.
  */
-function webauth_return() {echo "dd"; exit;
+function webauth_return() {
   global $_webauth_session, $user;
   if (!$_webauth_session) {
     $_webauth_session = new WebAuthSession();
