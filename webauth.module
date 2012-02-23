@@ -26,7 +26,7 @@ function webauth_boot() {
       setcookie("WMDsecureLogin", 1, time()+3600, $base_path);
     }
   }
-  elseif ($_COOKIE["WMDsecureLogin"]) {
+ elseif (isset($_COOKIE["WMDsecureLogin"]) && $_COOKIE["WMDsecureLogin"]) {
     // An session seems to exist, but we are not in HTTPs.
     // Redirect so we can start secure session.
     global $base_url, $base_path;
