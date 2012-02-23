@@ -6,8 +6,7 @@
  */
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Base webauth settings form
  */
 function webauth_admin_settings($form, &$form_state) {
 
@@ -57,8 +56,7 @@ function webauth_admin_settings($form, &$form_state) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * The webauth groups/mapping form
  */
 function webauth_admin_groups($form, &$form_state) {
   $table = array();
@@ -146,8 +144,7 @@ function webauth_admin_groups_validate($form, &$form_state) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * The submit function for the webauth_admin_groups form
  */
 function webauth_admin_groups_submit($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Add Mapping')) {
@@ -190,8 +187,7 @@ function webauth_admin_groups_submit($form, &$form_state) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Webauth user specific functionality form.
  */
 function webauth_admin_users($form, &$form_state) {
 
@@ -251,8 +247,7 @@ function webauth_admin_users_validate($form, &$form_state) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Submit function for webauth_admin_users form
  */
 function webauth_admin_users_submit($form, &$form_state) {
   // Need to update the .htaccess file.

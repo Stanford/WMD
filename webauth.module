@@ -6,7 +6,6 @@
  */
 
 define('WEBAUTH_DOMAIN', 'stanford.edu');
-#include_once dirname(__FILE__) . '/WebAuthSession.inc';
 
 /**
  * Implements hook_boot().
