@@ -256,6 +256,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       if (isset($form_state['weblogin']['server'])) {
         $form['#validate'] = array(
           'user_login_name_validate',
+          // webauth_login_validate replaces user_login_authenticate_validate
           'webauth_login_validate',
           'user_login_final_validate',
         );
@@ -438,6 +439,9 @@ function webauth_login_validate($form, &$form_state) {
   }
   if ($_webauth_session->isValidSession()) {
     user_external_login_register($form_state['values']['name'] . '@' . $form_state['weblogin']['server'], 'webauth');
+    // Replacement user_login_authenticate_validate() function must set $form_state['uid']
+    // for user_login_final_validate() not to set_message an error.
+    $form_state['uid'] = -1;
     user_login_finalize($form_state['values']);
   }
 }
