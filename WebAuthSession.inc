@@ -154,7 +154,7 @@ class WebAuthSession {
   }
 
   public function getReturnUrl($clear = FALSE) {
-    if ($clear) {
+    if ($clear && isset($_SESSION['wa_return_url'])) {
       $this->returnUrl = $_SESSION['wa_return_url'];
       unset($_SESSION['wa_return_url']);
     }
