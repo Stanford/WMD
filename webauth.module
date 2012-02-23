@@ -99,6 +99,7 @@ function webauth_menu() {
 
   $items['admin/config/webauth'] = array(
     'title' => 'WebAuth',
+    'type' => MENU_NORMAL_ITEM,
     'description' => 'Authenticate through Stanford WebAuth',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('webauth_admin_settings'),
