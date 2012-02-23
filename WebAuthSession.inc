@@ -327,7 +327,7 @@ class WebAuthSession {
         $header_array = explode(': ', $header, 2);
         // Must have two or list() will warn.
         if (count($header_array) == 2) {
-          list($hName, $hVal) = $header_array
+          list($hName, $hVal) = $header_array;
           $hName = trim($hName);
           $hVal = trim($hVal);
           if (substr($hName, 0, 3) == 'wa_') {
