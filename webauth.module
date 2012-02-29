@@ -201,6 +201,7 @@ function webauth_return() {
       drupal_form_submit('user_login', $form_state);
     }
     else {
+      session_destroy();
       return $_webauth_session->getWeblogin();
     }
   }
