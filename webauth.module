@@ -248,6 +248,8 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
           $form['account']['name']['#type'] = 'hidden';
           $form['account']['name']['#value'] = $account->name;
           $form['account']['pass']['#type'] = 'hidden';
+          $form['account']['current_pass']['#type'] = 'hidden';
+          unset($form['account']['current_pass_required_values']['#value']['mail']);
         }
       }
       break;
