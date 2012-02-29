@@ -322,7 +322,7 @@ function webauth_user_insert(&$edit, &$account, $category) {
 /**
  * Implements hook_user_delete().
  */
-function hook_user_delete($account) {
+function webauth_user_delete($account) {
   db_delete('webauth_roles_history')
     ->condition('uid', $account->uid)
     ->execute();
@@ -331,7 +331,7 @@ function hook_user_delete($account) {
 /**
  * Implements hook_user_logout().
  */
-function hook_user_logout($account) {
+function webauth_user_logout($account) {
   if (isset($_COOKIE['WMDsecureLogin'])) {
     unset($_COOKIE['WMDsecureLogin']);
     setcookie('WMDsecureLogin', '', REQUEST_TIME - 3600);
