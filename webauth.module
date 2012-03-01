@@ -138,6 +138,99 @@ function webauth_menu() {
 }
 
 /**
+ * Implements hook_block_info().
+ */
+
+function webauth_block_info() {
+  $blocks['webauth_login_block'] = array(
+    'info'       => t('WebAuth Authentication'),
+    'status'     => 1,
+    'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+    'weight'     => 0,
+    'region'     => 'sidebar_first'
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function webauth_block_configure($delta = '') {
+  $form = array();
+  switch ($delta) {
+    case 'webauth_login_block':
+      $form['webauth_link_text'] = array(
+      '#type'          => 'textfield',
+      '#title'         => t('Text of the WebAuth login link'),
+      '#require'       => TRUE,
+      '#size'          => 60,
+      '#description'   => t('Here you can replace the text of the WebAuth link.'),
+      '#default_value' => variable_get('webauth_link_text', 'Login with your SUNetID'),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function webauth_block_save($delta = '', $edit = array()) {
+  switch ($delta) {
+    case 'webauth_login_block':
+      variable_set('webauth_link_text', filter_xss($edit['webauth_link_text']));
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function webauth_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'webauth_login_block':
+	  // only show block for anonymous users
+	  if (user_is_logged_in()) { return $block; }
+      $block = array(
+        'subject' => t('WebAuth Login'),
+        'content' => _webauth_login_url_html(),
+      );
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_block_view_alter().
+ */
+function webauth_block_view_user_login_alter(&$data, $block) {
+  $allow_local = variable_get('webauth_allow_local', TRUE);
+  if (!$allow_local) {
+    unset($data['content']);
+  }
+  else {
+    $data['subject'] = t('Local User Login');
+  }
+}
+/**
+ * Generate the login block content
+ */
+function _webauth_login_url_html() {
+  global $user, $base_url, $_webauth_session;
+  // Create a webauth session if needed and not already created.
+  if (!$_webauth_session) {
+    $_webauth_session = new WebAuthSession();
+  }
+
+  $secure_base_url = str_replace('http:', 'https:', $base_url);
+  $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
+  if ($user->uid === 0) {
+    return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Login with your SUNetID')));
+  }
+  return NULL;
+}
+
+
+/**
  * Handle 403 errors by redirecting users to webauth for login.
  *
  * If, however, they are already logged in and don't have access
@@ -223,8 +316,20 @@ function webauth_return() {
 function webauth_theme($existing, $type, $theme, $path) {
   return array(
     'webauth_htaccess' => array(
-      'variables' => array('groups' => NULL, 'require_valid_user' => NULL, 'users' => NULL, 'privgroups' => NULL, 'rewrite_url' => NULL),
       'template' => 'webauth_htaccess',
+      'variables' => array(
+        'groups'             => NULL,
+        'require_valid_user' => NULL,
+        'users'              => NULL,
+        'privgroups'         => NULL,
+        'rewrite_url' => NULL),
+    ),
+    'webauth_login_block' => array(
+      'template' => 'webauth_login_block',
+      'variables' => array(
+        'login_url'  => NULL,
+        'login_text' => NULL,
+      ),
     ),
   );
 }
@@ -238,7 +343,6 @@ function webauth_theme($existing, $type, $theme, $path) {
  */
 function webauth_form_alter(&$form, &$form_state, $form_id) {
   global $user, $base_url, $_webauth_session;
-
 
   switch ($form_id) {
     case 'user_profile_form':
@@ -256,6 +360,8 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       break;
     case 'user_login_block':
     case 'user_login':
+      $form['name']['#title'] = t('Local Drupal Username');
+      $form['pass']['#title'] = t('Local Drupal Password');
       // Create a webauth session if needed and not already created.
       if (!$_webauth_session) {
         $_webauth_session = new WebAuthSession();
@@ -272,31 +378,11 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       // redirect context, so if we are on the auth path here, we should stop
       // altering at this point.
       //
-      // I don't love this fix, but it's necssary given how the $_webauth_session
+      // I don't love this fix, but it's necessary given how the $_webauth_session
       // object is constructud at the moment.
       $path = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
       if ($_GET['q'] == $path) {
         return;
-      }
-
-      // Build a link to wa_login.
-      $secure_base_url = str_replace('http:', 'https:', $base_url);
-      $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
-      $form['webauth_link'] = array(
-        '#prefix' => '<div id="webauth-link">', // make it themable
-        '#markup' => l(t(variable_get('webauth_link_text', 'Login with your SUNetID')), $webauth_login),
-        '#suffix' => '</div>',
-        '#weight' => -10,
-      );
-
-      if ($form_id == 'user_login_block') {
-        $allow_local = variable_get('webauth_allow_local', TRUE);
-        if (!$allow_local) {
-          unset($form['name']);
-          unset($form['pass']);
-          unset($form['submit']);
-          unset($form['links']);
-        }
       }
       break;
   }
