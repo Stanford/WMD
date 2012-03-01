@@ -15,6 +15,7 @@ define('WEBAUTH_DOMAIN', 'stanford.edu');
  * The sole purposes of this function is to insure HTTPS protocol, and
  * the security of the session.
  */
+
 function webauth_boot() {
   if (!empty($_SERVER['HTTPS'])) {
     global $base_url, $user, $base_path;
@@ -44,6 +45,7 @@ function webauth_boot() {
  * This function also insures that webauth is handling 403s, and that
  * pages for logged in users are not cached in browsers.
  */
+
 function webauth_init() {
   global $_webauth_session, $user;
 
@@ -76,9 +78,11 @@ function webauth_init() {
   }
 }
 
+
 /**
  * Implements hook_menu().
  */
+
 function webauth_menu() {
   $items = array();
 
@@ -137,6 +141,7 @@ function webauth_menu() {
   return $items;
 }
 
+
 /**
  * Implements hook_block_info().
  */
@@ -152,9 +157,11 @@ function webauth_block_info() {
   return $blocks;
 }
 
+
 /**
  * Implements hook_block_configure().
  */
+
 function webauth_block_configure($delta = '') {
   $form = array();
   switch ($delta) {
@@ -171,9 +178,11 @@ function webauth_block_configure($delta = '') {
   return $form;
 }
 
+
 /**
  * Implements hook_block_save().
  */
+
 function webauth_block_save($delta = '', $edit = array()) {
   switch ($delta) {
     case 'webauth_login_block':
@@ -181,9 +190,11 @@ function webauth_block_save($delta = '', $edit = array()) {
   }
 }
 
+
 /**
  * Implements hook_block_view().
  */
+
 function webauth_block_view($delta = '') {
   $block = array();
   switch ($delta) {
@@ -199,9 +210,11 @@ function webauth_block_view($delta = '') {
   return $block;
 }
 
+
 /**
  * Implements hook_block_view_alter().
  */
+
 function webauth_block_view_user_login_alter(&$data, $block) {
   $allow_local = variable_get('webauth_allow_local', TRUE);
   if (!$allow_local) {
@@ -211,9 +224,12 @@ function webauth_block_view_user_login_alter(&$data, $block) {
     $data['subject'] = t('Local User Login');
   }
 }
+
+
 /**
  * Generate the login block content
  */
+
 function _webauth_login_url_html() {
   global $user, $base_url, $_webauth_session;
   // Create a webauth session if needed and not already created.
@@ -237,6 +253,7 @@ function _webauth_login_url_html() {
  * (for instance, a normal user requesting /admin), then display
  * a normal error message.
  */
+
 function webauth_error_page() {
   global $_webauth_session, $user;
   // @todo: Move this into a static getWebAuthSession() function within the class.
@@ -273,12 +290,14 @@ function webauth_error_page() {
 
 }
 
+
 /**
  * Function to return from webauth login from.
  *
  * This handles logging a user in and then redirecting them to the page they
  * were previously on.
  */
+
 function webauth_return() {
   global $_webauth_session, $user;
   if (!$_webauth_session) {
@@ -310,9 +329,11 @@ function webauth_return() {
   drupal_goto($return);
 }
 
+
 /**
  * Implements hook_theme().
  */
+
 function webauth_theme($existing, $type, $theme, $path) {
   return array(
     'webauth_htaccess' => array(
@@ -334,6 +355,7 @@ function webauth_theme($existing, $type, $theme, $path) {
   );
 }
 
+
 /**
  * Implements hook_form_alter().
  *
@@ -341,6 +363,7 @@ function webauth_theme($existing, $type, $theme, $path) {
  *
  * @todo Create method to set webauth_default_role, or remove.
  */
+
 function webauth_form_alter(&$form, &$form_state, $form_id) {
   global $user, $base_url, $_webauth_session;
 
@@ -388,9 +411,11 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+
 /**
  * Implements hook_user_login().
  */
+
 function webauth_user_login(&$edit, &$account) {
   // If this is a WebAuth account, check for roles and re-grant new roles.
   if (db_query("SELECT * FROM {authmap} WHERE uid = :uid and module = :module", array(':uid' => $account->uid, ':module' => 'webauth'))->fetchField()) {
@@ -398,25 +423,31 @@ function webauth_user_login(&$edit, &$account) {
   }
 }
 
+
 /**
  * Implements hook_user_insert().
  */
+
 function webauth_user_insert(&$edit, &$account, $category) {
   webauth_update_fields($edit, $account);
 }
 
+
 /**
  * Implements hook_user_delete().
  */
+
 function webauth_user_delete($account) {
   db_delete('webauth_roles_history')
     ->condition('uid', $account->uid)
     ->execute();
 }
 
+
 /**
  * Implements hook_user_logout().
  */
+
 function webauth_user_logout($account) {
   if (isset($_COOKIE['WMDsecureLogin'])) {
     unset($_COOKIE['WMDsecureLogin']);
@@ -426,9 +457,11 @@ function webauth_user_logout($account) {
   unset($_SESSION['wa_return_url']);
 }
 
+
 /**
  * This is a helper function to store webauth-derived data for the user account.
  */
+
 function webauth_update_fields(&$edit, &$account) {
   // We only want to run these if the user is self-creating via webauth.
   // Otherwise an admin user will transpose their own values onto any
@@ -451,6 +484,7 @@ function webauth_update_fields(&$edit, &$account) {
   }
 }
 
+
 /**
  * This is a helper function to grant drupal roles based on webauth data.
  *
@@ -458,6 +492,7 @@ function webauth_update_fields(&$edit, &$account) {
  * drupal users log in. It could also be invoked by other operations to
  * sync up a users roles based on their webauth settings.
  */
+
 function webauth_grant_roles(&$edit, &$account) {
   global $_webauth_session;
   if (!$_webauth_session) {
@@ -521,10 +556,12 @@ function webauth_grant_roles(&$edit, &$account) {
   }
 }
 
+
 /**
  * Perform webauth validation on users who come in via the normal Drupal login
  * form or block.
  */
+
 function webauth_login_validate($form, &$form_state) {
   global $_webauth_session;
   if (!$_webauth_session) {
@@ -541,9 +578,11 @@ function webauth_login_validate($form, &$form_state) {
   }
 }
 
+
 /**
  * Function to write out our .htaccess file.
  */
+
 function webauth_write_htaccess() {
   global $_webauth_session;
 
