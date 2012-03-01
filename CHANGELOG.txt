@@ -55,7 +55,7 @@ by srude, joshkoenig, mrmarco:
 
 WebAuth 6.x-2.56
 ------------------------------
-by mrmarco: Allow more room for Webauth's restrict message
+by mrmarco: Allow more room for WebAuth's restrict message
 by mrmarco: Allow more room for Stanford Workgroups
 by mrmarco: Make module work with WebAuth General permissions
 by mrmarco: Remove calls to hardcoded localhost and use $url['host'] instead.

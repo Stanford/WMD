@@ -187,7 +187,7 @@ function webauth_admin_groups_submit($form, &$form_state) {
 }
 
 /**
- * Webauth user specific functionality form.
+ * WebAuth user specific functionality form.
  */
 function webauth_admin_users($form, &$form_state) {
 
