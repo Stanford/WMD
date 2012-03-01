@@ -24,15 +24,15 @@ function webauth_admin_settings($form, &$form_state) {
       0 => t('Hide Local Drupal Accounts'),
       1 => t('Allow Local Drupal Accounts'),
     ),
-    '#description' => t('Hide Local Drupal Accounts will allow users to only login through Stanford WebLogin.'),
+    '#description' => t('Hide Local Drupal Accounts will allow users to only log in through Stanford WebLogin.'),
   );
   $form['webauth_link_text'] = array(
     '#type' => 'textfield',
     '#title' => t('WebLogin Link Text'),
     '#size' => 80,
     '#maxlength' => 255,
-    '#default_value' => variable_get('webauth_link_text', 'Login with your SUNetID'),
-    '#description' => t('The text which is displayed as the link to the WebLogin page for SUNetID users.'),
+    '#default_value' => variable_get('webauth_link_text', 'Log in with your SUNet ID'),
+    '#description' => t('The text which is displayed as the link to the WebLogin page for SUNet ID users.'),
   );
   $form['webauth_destination'] = array(
     '#type' => 'textfield',

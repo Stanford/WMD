@@ -75,7 +75,7 @@ by ksharp: Fixed interaction between webauth auto-login and content access
            restriction to follow more restrictive path. (That is, if auto-login
            is set, user will still be automatically redirected to WebLogin, but
            content will still be restricted if the node is restricted from view
-           for SUNetID role.
+           for SUNet User role.
 
 
 WebAuth 6.x-2.53

@@ -165,7 +165,7 @@ function webauth_block_configure($delta = '') {
       '#require'       => TRUE,
       '#size'          => 60,
       '#description'   => t('Here you can replace the text of the WebAuth link.'),
-      '#default_value' => variable_get('webauth_link_text', 'Login with your SUNetID'),
+      '#default_value' => variable_get('webauth_link_text', 'Log in with your SUNet ID'),
     );
   }
   return $form;
@@ -224,7 +224,7 @@ function _webauth_login_url_html() {
   $secure_base_url = str_replace('http:', 'https:', $base_url);
   $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
   if ($user->uid === 0) {
-    return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Login with your SUNetID')));
+    return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Log in with your SUNet ID')));
   }
   return NULL;
 }
