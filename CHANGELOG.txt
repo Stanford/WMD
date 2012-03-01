@@ -7,6 +7,15 @@ by eosrei
 - Adjusted whitespace use
 - Corrected coder module warnings
 - Converted module for use with Drupal 7
+by mrmarco
+- Updated admin documentation
+- Updated LICENSE
+- Alter local user login form to indicate it's for local accounts
+- #83: Corrected spelling of SUNet ID and Log In
+- #82: Allow WMD users to change their email
+- #78: Allow theming of login block
+- #76: Users can't log in if anonymous users don't have the "access content" permission
+- #75: Endless redirects with expired sessions
 
 
 WebAuth 6.x-3.1 2012-02-09

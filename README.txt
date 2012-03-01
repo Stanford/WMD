@@ -66,6 +66,15 @@ Authorizations is where you can decide who can login to your site using
 WebAuth. By default it's anyone with a SUNet ID (valid-user) but you can
 restrict that further if you want.
 
+-- KNOWN ISSUES --
+
+Because the WebAuth module for Drupal attempts to log people in automatically
+if they reach a restricted resource, removing "View Published Content" permissions
+from anonymous users may result in users not being able to log out. That's because
+upon log out, users are redirected to the home page. If the home page is restricted,
+the module will log the users back in again. The current workaround is to quit
+the browser to destroy the WebAuth cookie.
+
 -- TROUBLESHOOTING --
 
 If you encounter any issues while using this module at Stanford,
