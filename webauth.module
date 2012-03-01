@@ -237,7 +237,6 @@ function _webauth_login_url_html() {
     $_webauth_session = new WebAuthSession();
   }
 
-  $secure_base_url = str_replace('http:', 'https:', $base_url);
   $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
   if ($user->uid === 0) {
     return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Log in with your SUNet ID')));
