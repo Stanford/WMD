@@ -1,6 +1,12 @@
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
+WebAuth 6.x-3.2 2012-03-02
+------------------------------
+#74 by mrmarco: WebAuth tries to use a non-existent cookie
+#75 by mrmarco: Fix endless redirect loop on expired session
+#76 by mrmarco: Users can't log in if anonymous users have no content access
+
 
 WebAuth 6.x-3.1 2012-02-09
 ------------------------------
