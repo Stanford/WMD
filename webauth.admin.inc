@@ -31,8 +31,8 @@ function webauth_admin_settings($form, &$form_state) {
     '#title' => t('WebAuth Link Text'),
     '#size' => 80,
     '#maxlength' => 255,
-    '#default_value' => variable_get('webauth_link_text', 'Log in with your SUNet ID'),
-    '#description' => t('The text for the WebAuth link. It&rsquo;s what users will click on to log in using WebAuth. (E.g.: "Log in with your SUNet ID")'),
+    '#default_value' => variable_get('webauth_link_text', 'Log in with WebAuth'),
+    '#description' => t('The text for the WebAuth link. It&rsquo;s what users will click on to log in using WebAuth. (E.g.: "Log in with WebAuth")'),
   );
   $form['webauth_destination'] = array(
     '#type' => 'textfield',

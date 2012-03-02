@@ -68,6 +68,7 @@ function webauth_init() {
         // An invalid webauth token was in found!
         // Destroy the current session
         session_destroy();
+		session_start();
         // Only variables can be passed by reference workaround.
         $null = NULL;
         user_module_invoke('user/logout', $null, $user);
@@ -151,6 +152,7 @@ function webauth_block_info() {
     'info'       => t('WebAuth Authentication'),
     'status'     => 1,
     'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+	'pages'      => "user\nuser/*",
     'weight'     => 0,
     'region'     => 'sidebar_first'
   );
@@ -172,7 +174,7 @@ function webauth_block_configure($delta = '') {
       '#require'       => TRUE,
       '#size'          => 60,
       '#description'   => t('Here you can replace the text of the WebAuth link.'),
-      '#default_value' => variable_get('webauth_link_text', 'Log in with your SUNet ID'),
+      '#default_value' => variable_get('webauth_link_text', 'Log in with WebAuth'),
     );
   }
   return $form;
@@ -239,7 +241,7 @@ function _webauth_login_url_html() {
 
   $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
   if ($user->uid === 0) {
-    return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Log in with your SUNet ID')));
+    return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Log in with WebAuth')));
   }
   return NULL;
 }
@@ -364,7 +366,6 @@ function webauth_theme($existing, $type, $theme, $path) {
 
 function webauth_form_alter(&$form, &$form_state, $form_id) {
   global $user, $base_url, $_webauth_session;
-
   switch ($form_id) {
     case 'user_profile_form':
       $account = $form['#user'];
@@ -383,6 +384,35 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
     case 'user_login':
       $form['name']['#title'] = t('Local Drupal Username');
       $form['pass']['#title'] = t('Local Drupal Password');
+      if ($form_id === 'user_login') {
+	    // create a WebAuth login link
+        if (!$_webauth_session) {
+          $_webauth_session = new WebAuthSession();
+        }
+        $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
+
+		// create a wrapper for the webauth link so we can de-emphasize the local user login form
+	    $form['webauth_login_wrapper']['#title']       = t('WebAuth Login');
+	    $form['webauth_login_wrapper']['#type']        = 'fieldset';
+	    $form['webauth_login_wrapper']['#collapsible'] = TRUE;
+	    $form['webauth_login_wrapper']['#collapsed']   = FALSE;
+		$form['webauth_login_wrapper']['webauth_login_link']['#markup'] = theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Log in with WebAuth')));
+
+		// create a wrapper for the form, so we can de-emphasize the local user login form
+	    $form['local_login_wrapper']['#title']       = 'Local User Login';
+	    $form['local_login_wrapper']['#type']        = 'fieldset';
+	    $form['local_login_wrapper']['#collapsible'] = TRUE;
+	    $form['local_login_wrapper']['#collapsed']   = TRUE;
+
+		// copy and move the form fields into the wrapper
+	    $form['local_login_wrapper']['name'] = $form['name'];
+	    $form['local_login_wrapper']['pass'] = $form['pass'];
+	    $form['local_login_wrapper']['actions'] = $form['actions'];
+	    unset($form['name']);
+	    unset($form['pass']);
+	    unset($form['actions']);
+      }
+
       // Create a webauth session if needed and not already created.
       if (!$_webauth_session) {
         $_webauth_session = new WebAuthSession();
