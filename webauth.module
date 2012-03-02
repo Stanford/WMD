@@ -65,9 +65,10 @@ function webauth_init() {
     if (db_query("SELECT * FROM {authmap} WHERE uid = :uid and module = :module", array(':uid' => $user->uid, ':module' => 'webauth'))->fetchField()) {
       $_webauth_session = new WebAuthSession();
       if ($_webauth_session->isLoggedIn() && !$_webauth_session->isValidSession()) {
-        // An invalid webauth token was in found!
-        // Destroy the current session
+        // The webauth session has expired, so destroy the current session
         session_destroy();
+		// Start a new session so that we don't clobber other functions that expect
+		// a session (like logout)
 		session_start();
         // Only variables can be passed by reference workaround.
         $null = NULL;
