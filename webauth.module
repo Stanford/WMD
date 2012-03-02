@@ -88,13 +88,13 @@ function webauth_menu() {
 
   $items[$path] = array(
     'page callback' => 'webauth_return',
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
   $items['webauth/403'] = array(
     'page callback' => 'webauth_error_page',
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
