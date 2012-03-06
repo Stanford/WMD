@@ -294,6 +294,28 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+function webauth_form_user_pass_alter(&$form, &$form_state) {
+  $form['name']['#description'] = t('Note: For local Drupal accounts only. Do not use this form to request a new password for a SUNet account. Use <a href="https://stanfordyou.stanford.edu">StanfordYou</a>.');
+  $form['#validate'][] = 'webauth_user_pass_validate';
+}
+
+function webauth_user_pass_validate (&$form, &$form_state) {
+  $name = trim($form_state['values']['name']);
+
+  // Try to load by email.
+  $account = user_load(array('mail' => $name, 'status' => 1));
+  if (!$account) {
+    // No success, try to load by name.
+    $account = user_load(array('name' => $name, 'status' => 1));
+  }
+  if ($account) {
+    // If this is a WebAuth account, we should not let them request a one time login link
+    if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $account->uid))) {
+      form_set_error('name', t('%name is an account handled by WebAuth and its password cannot be changed here.<br />If you need to update your password, please use <a href="https://stanfordyou.stanford.edu">StanfordYou</a>.', array('%name' => $name)));
+    }
+  }
+} 
+
 
 /**
  * Implementation of hook_user().
