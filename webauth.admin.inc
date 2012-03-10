@@ -1,6 +1,7 @@
 <?php
 /**
- * webauth.admin.inc
+ * @file
+ * Administration functions for the WebAuth module
  */
 
 function webauth_admin_settings() {
@@ -11,19 +12,19 @@ function webauth_admin_settings() {
     $roles[$role->rid] = $role->name;
   }
 
-  $defValue = variable_get('webauth_allow_local', 1);
   $form['webauth_allow_local'] = array(
     '#type' => 'radios',
     '#title' => t('Stanford WebAuth options'),
-    '#default_value' => $defValue,
+    '#default_value' => variable_get('webauth_allow_local', 1),
     '#options' => array(0 => t('Hide Local Drupal Accounts'), 1 => t('Allow Local Drupal Accounts')),
     '#description' => t('Hide Local Drupal Accounts will allow users to only login through Stanford WebLogin.'),
   );
   $form['webauth_link_text'] = array(
     '#type' => 'textfield',
     '#title' => t('WebLogin Link Text'),
-    '#size' => 80, '#maxlength' =>255,
-    '#default_value' => variable_get('webauth_link_text','Login with your SUNetID'),
+    '#size' => 80,
+    '#maxlength' => 255,
+    '#default_value' => variable_get('webauth_link_text', 'Login with your SUNetID'),
     '#description' => t('The text which is displayed as the link to the WebLogin page for SUNetID users.')
   );
   $form['webauth_destination'] = array(
@@ -126,19 +127,19 @@ function webauth_admin_groups_submit($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Add Mapping')) {
     // Add mapping
     db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d,'%s')", $form_state['values']['new_rid'], $form_state['values']['new_group']);
-    $role_name = db_result(db_query("SELECT name FROM role WHERE rid = %d", $form_state['values']['new_rid']));
-    drupal_set_message("Added new WebAuth mapping: $role_name => " . $form_state['values']['new_group']);
+    $role_name = db_result(db_query("SELECT name FROM {role} WHERE rid = %d", $form_state['values']['new_rid']));
+    drupal_set_message(check_plain("Added new WebAuth mapping: $role_name => " . $form_state['values']['new_group']));
   }
   elseif ($form_state['clicked_button']['#value'] == t('Remove Mapping')) {
     // Remove mapping
     $warid = drupal_substr($form_state['clicked_button']['#name'], 13);
     db_query("DELETE FROM {webauth_roles} WHERE warid = %d", $warid);
-    drupal_set_message("Removed WebAuth mapping from table. [ID: $warid]");
+    drupal_set_message(check_plain("Removed WebAuth mapping from table. [ID: $warid]"));
     // Clear out any roles that were granted as a result.
     $result = db_query("SELECT * FROM {webauth_roles_history} WHERE warid = %d", $warid);
     while ($history = db_fetch_object($result)) {
       // See if there's another mapping for this role.
-      if (!db_result(db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d AND rid = %d AND warid != %d", $history->uid, $history->rid, $warid))) {
+      if (!db_result(db_query("SELECT * FROM {webauth_roles_history} WHERE uid = %d AND rid = %d AND warid <> %d", $history->uid, $history->rid, $warid))) {
         // If not, nix the users_roles value so they lose privileges immediately.
         db_query("DELETE FROM {users_roles} WHERE uid = %d AND rid = %d", $history->uid, $history->rid);
       }
@@ -190,13 +191,13 @@ function webauth_admin_users_validate($form, &$form_state) {
   $userlines = explode("\n", chop($form_state['values']['webauth_require_users']));
   $grouplines = explode("\n", chop($form_state['values']['webauth_require_privgroups']));
 
-  foreach($userlines as $line) {
+  foreach ($userlines as $line) {
     $line = chop($line);
     if ($line != '' && preg_match("/^[\w\d-_]+$/", $line) != 1) {
       form_set_error('webauth_require_users', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
     }
   }
-  foreach($grouplines as $line) {
+  foreach ($grouplines as $line) {
     $line = chop($line);
     if ($line != '' && preg_match("/^[-_\w\d\~]+:[\w\d-_]+$/", $line) != 1) {
       form_set_error('webauth_require_privgroups', t('!line is not a valid user format. Please enter one username per line.', array('!line' => $line)));
@@ -244,12 +245,12 @@ function webauth_migrate_to_content_access() {
           $role_exists = (bool) db_result(db_query("SELECT COUNT(*) FROM {role} WHERE name = '%s'", $sugroup));
           if (!$role_exists) {
             db_query("INSERT INTO {role} (name) VALUES ('%s')", $sugroup);
-            drupal_set_message("Added Role $sugroup");
+            drupal_set_message(check_plain("Added Role $sugroup"));
           }
           $rid = db_result(db_query("SELECT rid FROM {role} WHERE name = '%s'", $sugroup));
           if ($rid) {
             db_query("INSERT INTO {webauth_roles} (rid,wa_group) VALUES (%d, '%s')", $rid, $sugroup);
-            drupal_set_message("Added Group mapping for $sugroup => $sugroup");
+            drupal_set_message(check_plain("Added Group mapping for $sugroup => $sugroup"));
             $webauth_roles[$rid] = $rid;
           }
         }
@@ -291,6 +292,6 @@ function webauth_migrate_to_content_access() {
   content_access_set_settings($content_access_settings);
   // Rebuild content_access settings.
   content_access_mass_update($types);
-  drupal_set_message(t("You need to rebuild the node access settings now. You can do that !link.", array('!link' => l(t('here'), 'admin/content/node-settings'))), 'error');
+  drupal_set_message(check_plain(t("You need to rebuild the node access settings now. You can do that !link.", array('!link' => l(t('here'), 'admin/content/node-settings')))), 'error');
   node_access_needs_rebuild(TRUE);
 }

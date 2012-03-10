@@ -299,11 +299,11 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
 }
 
 function webauth_form_user_pass_alter(&$form, &$form_state) {
-  $form['name']['#description'] = t('Note: For local Drupal accounts only. Do not use this form to request a new password for a SUNet account. Use <a href="https://stanfordyou.stanford.edu">StanfordYou</a>.');
+  $form['name']['#description'] = filter_xss(t('Note: For local Drupal accounts only. Do not use this form to request a new password for a SUNet account. Use <a href="https://stanfordyou.stanford.edu">StanfordYou</a>.'));
   $form['#validate'][] = 'webauth_user_pass_validate';
 }
 
-function webauth_user_pass_validate (&$form, &$form_state) {
+function webauth_user_pass_validate(&$form, &$form_state) {
   $name = trim($form_state['values']['name']);
 
   // Try to load by email.
