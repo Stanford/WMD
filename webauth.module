@@ -26,11 +26,15 @@ function webauth_boot() {
       setcookie("WMDsecureLogin", 1, time()+3600, $base_path);
     }
   }
- elseif (isset($_COOKIE["WMDsecureLogin"]) && $_COOKIE["WMDsecureLogin"]) {
-    // An session seems to exist, but we are not in HTTPs.
+  elseif (isset($_COOKIE["WMDsecureLogin"]) && $_COOKIE["WMDsecureLogin"]) {
+    // A session seems to exist, but we are not in HTTPS.
     // Redirect so we can start secure session.
     global $base_url, $base_path;
-    $url = $base_url . '?q=' . $_GET['q'];
+    $query = '';
+    if (isset($_GET['q']) && !empty($_GET['q'])) {
+      $query = '?q=' . $_GET['q'];
+    }
+    $url = $base_url . $query;
     $url = str_replace('http://', 'https://', $url);
     header("Location: $url");
   }
@@ -273,7 +277,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       // Build a link to wa_login.
       $secure_base_url = str_replace('http:', 'https:', $base_url);
       $webauth_login = $wa_session->getLoginUrl($_GET['q']);
-      $wa_url = l(variable_get('webauth_link_text','Login with your SUNetID'), $webauth_login);
+      $wa_url = l(variable_get('webauth_link_text', 'Login with your SUNetID'), $webauth_login);
       $form['webauth_link'] = array(
         '#prefix' => '<div id="webauth-link">',  // make it themable
         '#value' => $wa_url,
