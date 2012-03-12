@@ -8,11 +8,6 @@
 class WebAuthSession {
 
   /**
-   * Session ID.
-   */
-  protected $sid;
-
-  /**
    * Session name.
    */
   protected $name;
@@ -93,9 +88,6 @@ class WebAuthSession {
 
     $this->name = session_name();
 
-    $this->sid = session_id();
-
-
     // Set our authentication redirect URL.
     $this->makeAuthUrl();
 
@@ -108,10 +100,6 @@ class WebAuthSession {
 
   public function getSessionName() {
     return $this->name;
-  }
-
-  public function getSessionId() {
-    return $this->sid;
   }
 
   public function getSessionData($key = NULL) {
