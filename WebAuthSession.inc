@@ -18,11 +18,6 @@ class WebAuthSession {
   protected $domain;
 
   /**
-   * Cookie sent.
-   */
-  protected $cookieSent = FALSE;
-
-  /**
    * Error data.
    */
   protected $error;
