@@ -446,11 +446,6 @@ function webauth_login_validate($form, &$form_state) {
  * Function to write out our .htaccess file.
  */
 function webauth_write_htaccess() {
-  global $wa_session;
-
-  if (!$wa_session) {
-    $wa_session = new WebAuthSession();
-  }
 
   $groups = array();
   $user_list = '';
@@ -480,9 +475,9 @@ function webauth_write_htaccess() {
     }
   }
 
-
+  // if clean URLs are disabled, we need to redirect users back to Drupal
+  // after they have logged in
   if (!variable_get('clean_url', 0)) {
-    $path = $wa_session->getLoginUrl();
     $new_path = base_path() . '?q=' . variable_get('webauth_path', conf_path() . '/webauth') . '/login';
     $rewrite_url .= 'RewriteRule login(.*)$ ' . $new_path . '$1 [L,R=301]';
   }
