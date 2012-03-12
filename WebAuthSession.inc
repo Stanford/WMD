@@ -13,11 +13,6 @@ class WebAuthSession {
   protected $data;
 
   /**
-   * Cookie domain.
-   */
-  protected $domain;
-
-  /**
    * Error data.
    */
   protected $error;
@@ -72,10 +67,6 @@ class WebAuthSession {
   }
 
   private function __init() {
-    global $cookie_domain;
-
-    $this->domain = $cookie_domain;
-
     // Set our authentication redirect URL.
     $this->makeAuthUrl();
 
