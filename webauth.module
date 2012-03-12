@@ -13,7 +13,7 @@ include_once(dirname(__FILE__) . '/WebAuthSession.inc');
  *
  * This functions very very early, before most of Drupal has even loaded.
  *
- * The sole purposes of this function is to insure HTTPS protocol, and
+ * The sole purposes of this function is to ensure HTTPS protocol, and
  * the security of the session.
  */
 function webauth_boot() {
@@ -21,6 +21,7 @@ function webauth_boot() {
     global $base_url, $user, $base_path;
     // Mandate HTTPS for sessions.
     ini_set('session.cookie_secure', 1);
+    ini_set('session.cookie_lifetime', 0);
     $base_url = str_replace('http://', 'https://', $base_url);
     if ($user->uid > 0) {
       setcookie("WMDsecureLogin", 1, time()+3600, $base_path);
@@ -46,7 +47,7 @@ function webauth_boot() {
  *
  * If a user was created via webauth, we validate their session there.
  *
- * This function also insures that webauth is handling 403s, and that
+ * This function also ensures that webauth is handling 403s, and that
  * pages for logged in users are not cached in browsers.
  */
 function webauth_init() {
