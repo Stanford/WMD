@@ -106,36 +106,6 @@ class WebAuthSession {
     $this->loadSessionData();
   }
 
-  /**
-   * Public function to write cookie to user.
-   * @param string $name
-   * @param string $value
-   * @param string $expire
-   * @param string $path
-   * @param string $domain
-   * @param bool $secure
-   * @param bool $httpOnly
-   */
-  public function writeCookie($name, $value) {
-    // see if we've already made this cookie request
-    static $cookieRequests = array();
-
-    if (isset($cookieRequests[$name]) && $cookieRequests[$name] === $value) {
-      return; // request already made
-    }
-    else {
-      $cookieRequests[$name] = $value; // store it for testing
-    }
-
-    // write a cookie to the browser - check for PHP version to see whether to include $httpOnly value
-    if (version_compare(PHP_VERSION, '5.2.0') === -1) {
-      setcookie($name, $value, 0, '/', $this->domain, TRUE);
-    }
-    else {
-      setcookie($name, $value, 0, '/', $this->domain, TRUE, TRUE);
-    }
-  }
-
   public function getSessionName() {
     return $this->name;
   }
