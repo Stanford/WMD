@@ -13,11 +13,6 @@ class WebAuthSession {
   protected $data;
 
   /**
-   * Error data.
-   */
-  protected $error;
-
-  /**
    * Auth URL
    */
   protected $authUrl;
