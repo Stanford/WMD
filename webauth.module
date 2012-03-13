@@ -17,12 +17,23 @@ include_once(dirname(__FILE__) . '/WebAuthSession.inc');
  * the security of the session.
  */
 function webauth_boot() {
+
   if (!empty($_SERVER['HTTPS'])) {
     global $base_url, $user, $base_path;
+
     // Mandate HTTPS for sessions.
     ini_set('session.cookie_secure', 1);
+
+    // Session cookies should be deleted when the browser session ends
     ini_set('session.cookie_lifetime', 0);
+
     $base_url = str_replace('http://', 'https://', $base_url);
+
+    // Set a flag to indicate the user is logged in and that there are
+    // secure cookies. Since sessions for logged in users are only sent
+    // through HTTPS, those sessions won't be sent through HTTP.
+    // This cookies lets WMD know to redirect the user to an HTTPS version
+    // of the site so that those secure cookies can be received.
     if ($user->uid > 0) {
       setcookie("WMDsecureLogin", 1, time()+3600, $base_path);
     }
@@ -30,7 +41,7 @@ function webauth_boot() {
   elseif (isset($_COOKIE["WMDsecureLogin"]) && $_COOKIE["WMDsecureLogin"]) {
     // A session seems to exist, but we are not in HTTPS.
     // Redirect so we can start secure session.
-    global $base_url, $base_path;
+    global $base_url;
     $query = '';
     if (isset($_GET['q']) && !empty($_GET['q'])) {
       $query = '?q=' . $_GET['q'];
