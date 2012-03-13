@@ -70,9 +70,13 @@ function webauth_init() {
     variable_set('site_403', 'webauth/403');
   }
 
+  // pages for logged in users should not be cached
+  if ($user->uid > 0) {
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+  }
+
   $no_check_php_loop = (bool) (array_pop(explode('/', $_GET['q'])) != 'check.php');
   if ($user->uid > 0 && $no_check_php_loop) {
-    header("Cache-Control: no-store, no-cache, must-revalidate");
     // We only want to go further and check the wa_session if this user is
     // authenticated via webauth.
     if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
