@@ -61,8 +61,9 @@ function webauth_boot() {
  * This function also ensures that webauth is handling 403s, and that
  * pages for logged in users are not cached in browsers.
  */
+
 function webauth_init() {
-  global $wa_session, $user;
+  global $user;
 
   // Make sure we are handling 403 errors to implement auto-login
   $access_denied_page = variable_get('site_403', '');
@@ -75,14 +76,18 @@ function webauth_init() {
     header("Cache-Control: no-store, no-cache, must-revalidate");
   }
 
+  // end the session and log user out if:
+  // the user is logged in as a WebAuth user and:
+  // either the user no longer has a webauth_at cookie
+  // or the user's token has expired, or is not there
   $no_check_php_loop = (bool) (array_pop(explode('/', $_GET['q'])) != 'check.php');
   if ($user->uid > 0 && $no_check_php_loop) {
-    // We only want to go further and check the wa_session if this user is
-    // authenticated via webauth.
+    // We only want to go further if this user is authenticated via WebAuth
     if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
-      $wa_session = new WebAuthSession();
-      if ($wa_session->isLoggedIn() && !$wa_session->isValidSession()) {
-        // An invalid webauth token was in found!
+      if ((!isset($_COOKIE['webauth_at'])) ||
+	      (!isset($_SESSION['wa_session_data']['wa_token_expiration'])) ||
+		  ($_SESSION['wa_session_data']['wa_token_expiration'] <= time())
+		 ) {
         // Destroy the current session:
         session_destroy();
         // Only variables can be passed by reference workaround.
