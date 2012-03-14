@@ -1,6 +1,6 @@
 name = WebAuth
-description = Authenticates users through Stanford WebAuth.
-package = WebAuth
+description = Authenticates users through WebAuth.
+package = Stanford
 version = 6.x-3.2
 core = 6.x
 project = "webauth"
