@@ -86,7 +86,7 @@ class WebAuthSession {
 
   public function writeSessionData() {
     if (isset($_SERVER['HTTPS'])) {
-      $_SESSION['wa_session_data'] = $this->data;
+      $_SESSION['wa_session_data']['wa_token_expiration'] = $this->data['wa_token_expiration'];
     }
   }
 
