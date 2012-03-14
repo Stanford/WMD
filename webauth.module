@@ -19,8 +19,13 @@ define('WEBAUTH_DOMAIN', 'stanford.edu');
 function webauth_boot() {
   if (!empty($_SERVER['HTTPS'])) {
     global $base_url, $user, $base_path;
+
     // Mandate HTTPS for sessions.
     ini_set('session.cookie_secure', 1);
+
+    // Session cookies should be deleted when the browser session ends
+    ini_set('session.cookie_lifetime', 0);
+    
     $base_url = str_replace('http://', 'https://', $base_url);
     if ($user->uid > 0) {
       setcookie("WMDsecureLogin", 1, REQUEST_TIME + 3600, $base_path);
