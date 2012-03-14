@@ -54,7 +54,7 @@ by srude, joshkoenig, mrmarco:
 
 WebAuth 6.x-2.56
 ------------------------------
-by mrmarco: Allow more room for Webauth's restrict message
+by mrmarco: Allow more room for WebAuth's restrict message
 by mrmarco: Allow more room for Stanford Workgroups
 by mrmarco: Make module work with WebAuth General permissions
 by mrmarco: Remove calls to hardcoded localhost and use $url['host'] instead.
@@ -74,7 +74,7 @@ by ksharp: Fixed interaction between webauth auto-login and content access
            restriction to follow more restrictive path. (That is, if auto-login
            is set, user will still be automatically redirected to WebLogin, but
            content will still be restricted if the node is restricted from view
-           for SUNetID role.
+           for SUNet User role.
 
 
 WebAuth 6.x-2.53

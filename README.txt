@@ -45,7 +45,7 @@ At install time, WebAuth will do the following for you:
 * create roles for SUNEtID User, Student, Staff and Faculty
 * create mappings from the appropriate workgroups to the roles it created
 * add a login link to the login block
-* allow any valid user with a SUNetID to login to your site using WebAuth
+* allow any valid user with a SUNet ID to login to your site using WebAuth
 
 -- UPGRADE --
 
@@ -66,7 +66,7 @@ Student, Faculty and Staff roles and mappings are automatically created at
 install time.
 
 Authorizations is where you can decide who can login to your site using
-WebAuth. By default it's anyone with a SUNetID (valid-user) but you can
+WebAuth. By default it's anyone with a SUNet ID (valid-user) but you can
 restrict that further if you want.
 
 -- KNOWN ISSUES --
