@@ -318,10 +318,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       if ($form_id == 'user_login_block') {
         $allow_local = variable_get('webauth_allow_local', TRUE);
         if (!$allow_local) {
-          unset($form['name']);
-          unset($form['pass']);
-          unset($form['submit']);
-          unset($form['links']);
+          $form = array();
         }
       }
       break;
