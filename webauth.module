@@ -60,7 +60,6 @@ function webauth_boot() {
 function webauth_init() {
   global $_webauth_session, $user;
 
-  $is_return_url = (bool) ($_GET['q'] == variable_get('webauth_path', conf_path() . '/webauth') . '/login');
   $no_check_php_loop = (bool) (array_pop(explode('/', $_GET['q'])) != 'check.php');
   $access_denied_page = variable_get('site_403', '');
 
