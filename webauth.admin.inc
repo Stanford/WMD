@@ -16,23 +16,23 @@ function webauth_admin_settings() {
     '#type' => 'radios',
     '#title' => t('Stanford WebAuth options'),
     '#default_value' => variable_get('webauth_allow_local', 1),
-    '#options' => array(0 => t('Hide Local Drupal Accounts'), 1 => t('Allow Local Drupal Accounts')),
-    '#description' => t('Hide Local Drupal Accounts will allow users to only log in through Stanford WebLogin.'),
+    '#options' => array(0 => t('Hide Local Drupal Login Block'), 1 => t('Show Local Drupal Login Block')),
+    '#description' => t('Hide the Local Drupal Login Block if it&rsquo;s not needed by local accounts to prevent users from entering their SUNet ID and password there by mistake. This does not affect the <em>user/login</em> form which can still be used to log in as <em>user 1</em> when needed.'),
   );
   $form['webauth_link_text'] = array(
     '#type' => 'textfield',
-    '#title' => t('WebLogin Link Text'),
+    '#title' => t('WebAuth Link Text'),
     '#size' => 80,
     '#maxlength' => 255,
-    '#default_value' => variable_get('webauth_link_text', 'Login with your SUNet ID'),
-    '#description' => t('The text which is displayed as the link to the WebLogin page for SUNet ID users.')
+    '#default_value' => variable_get('webauth_link_text', 'Log in with WebAuth'),
+    '#description' => t('The text for the WebAuth link. It&rsquo;s what users will click on to log in using WebAuth. (E.g. "Log in with your SUNet ID")'),
   );
   $form['webauth_destination'] = array(
     '#type' => 'textfield',
     '#title' => t('Post-Login Destination'),
     '#size' => 80, '#maxlength' => 255,
     '#default_value' => variable_get('webauth_destination', ''),
-    '#description' => t('Drupal node to which the browser redirects after successful weblogin. (Ex: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal\'s default behavior.')
+    '#description' => t('Drupal node to which the browser redirects after successful login. (E.g.: \'node/add/page\' will automatically redirect user to a new content page.) If unsure, just leave blank to keep Drupal&rsquo;s default behavior.')
   );
 
   $form['webauth_restrict_message'] = array(
@@ -104,7 +104,7 @@ function webauth_admin_groups(&$form_state) {
     $row = array($group->name, $group->group, drupal_render($form[$button_id]));
     $table[] = $row;
   }
-  $header = array(t('Drupal Role'), t('SUNet Group'), t('Action'));
+  $header = array(t('Drupal Role'), t('Workgroup (e.g. stanford:staff)'), t('Action'));
   $form['output'] = array(
     '#value' => theme('table', $header, $table),
   );
@@ -118,7 +118,7 @@ function webauth_admin_groups_validate($form, &$form_state) {
       form_set_error('new_group', t('There was an error in your group name.  Please make sure you entered it correctly.'));
     }
     if (db_result(db_query("SELECT * FROM {webauth_roles} WHERE rid = %d AND wa_group = '%s'", $form_state['values']['new_rid'], $form_state['values']['new_group']))) {
-      form_set_error('new_group', t('This webauth group is already mapped to this Drupal role!'));
+      form_set_error('new_group', t('This workgroup is already mapped to this Drupal role!'));
     }
   }
 }
@@ -158,21 +158,21 @@ function webauth_admin_users(&$form_state) {
   $form['webauth_require_valid_user'] = array(
     '#type' => 'checkbox',
     '#title' => t('Require ANY valid user'),
-    '#description' => t('Require the valid-user statement in settings. This overrides whatever users are entered below. Default is on.'),
+    '#description' => t('If checked, anyone with a valid SUNet ID will be allowed to log in. This overrides whatever users or groups are entered below. Default is on.'),
     '#default_value' => variable_get('webauth_require_valid_user', 1),
   );
 
   $form['webauth_require_users'] = array(
     '#type' => 'textarea',
-    '#title' => t('SUNet users permitted access'),
-    '#description' => t('Enter one user per line.'),
+    '#title' => t('SUNet IDs of users permitted access'),
+    '#description' => t('Enter one SUNet ID per line.'),
     '#default_value' => variable_get('webauth_require_users', ''),
   );
 
   $form['webauth_require_privgroups'] = array(
     '#type' => 'textarea',
-    '#title' => t('SUNet privgroup permitted access'),
-    '#description' => t('Enter one privgroup (e.g."stanford:staff") per line.'),
+    '#title' => t('Workgroups permitted access'),
+    '#description' => t('Enter one workgroup (e.g."stanford:staff") per line. You can create and maintain workgroups using <a href="https://workgroup.stanford.edu">workgroup manager</a>.'),
     '#default_value' => variable_get('webauth_require_privgroups', ''),
   );
 

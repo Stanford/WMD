@@ -242,7 +242,7 @@ class WebAuthSession {
     }
     fclose($sock);
 
-	$return_data = array();
+    $return_data = array();
     list($return_data['headers'],
          $return_data['body']) = explode("\r\n\r\n", $return);
 
