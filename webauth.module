@@ -71,12 +71,12 @@ function webauth_init() {
     variable_set('site_403', 'webauth/403');
   }
 
-  // pages for logged in users should not be cached
+  // Pages for logged in users should not be cached
   if ($user->uid > 0) {
     header("Cache-Control: no-store, no-cache, must-revalidate");
   }
 
-  // end the session and log user out if:
+  // End the session and log user out if:
   // the user is logged in as a WebAuth user and:
   // either the user no longer has a webauth_at cookie
   // or the user's token has expired, or is not there
@@ -103,6 +103,7 @@ function webauth_init() {
 /**
  * Implementation of hook_menu().
  */
+
 function webauth_menu() {
   $items = array();
 
