@@ -84,6 +84,8 @@ class WebAuthSession {
     return $this->returnUrl;
   }
 
+  // Save the token expiration date in the session object so that it can be checked
+  // later without having to call check.php
   public function writeSessionData() {
     if (isset($_SERVER['HTTPS'])) {
       $_SESSION['wa_session_data']['wa_token_expiration'] = $this->data['wa_token_expiration'];
