@@ -27,6 +27,12 @@ function webauth_boot() {
     ini_set('session.cookie_lifetime', 0);
     
     $base_url = str_replace('http://', 'https://', $base_url);
+
+    // Set a flag to indicate the user is logged in and that there are
+    // secure cookies. Since sessions for logged in users are only sent
+    // through HTTPS, those sessions won't be sent through HTTP.
+    // This cookies lets WMD know to redirect the user to an HTTPS version
+    // of the site so that those secure cookies can be received.
     if ($user->uid > 0) {
       setcookie("WMDsecureLogin", 1, REQUEST_TIME + 3600, $base_path);
     }
