@@ -324,6 +324,10 @@ function webauth_return() {
     $_webauth_session = new WebAuthSession();
   }
 
+  if (!isset($_COOKIE['webauth_at'])) {
+    $_webauth_session->getWeblogin();
+  }
+
   if ($user->uid == 0) {
     if ($_webauth_session->isValidSession()) {
       $form_state = array();
