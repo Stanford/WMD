@@ -652,11 +652,6 @@ function webauth_login_validate($form, &$form_state) {
  */
 
 function webauth_write_htaccess() {
-  global $_webauth_session;
-
-  if (!$_webauth_session) {
-    $_webauth_session = new WebAuthSession();
-  }
 
   $groups = array();
   $user_list = '';
@@ -686,9 +681,7 @@ function webauth_write_htaccess() {
     }
   }
 
-
   if (!variable_get('clean_url', 0)) {
-    $path = $_webauth_session->getLoginUrl();
     $new_path = base_path() . '?q=' . variable_get('webauth_path', conf_path() . '/webauth') . '/login';
     $rewrite_url .= 'RewriteRule login(.*)$ ' . $new_path . '$1 [L,R=301]';
   }
