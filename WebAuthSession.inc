@@ -7,11 +7,6 @@
 class WebAuthSession {
 
   /**
-   * Session name.
-   */
-  protected $name;
-
-  /**
    * Session data.
    */
   protected $data;
@@ -84,7 +79,6 @@ class WebAuthSession {
     global $cookie_domain;
 
     $this->domain = $cookie_domain;
-    $this->name = session_name();
 
     // Set our authentication redirect URL.
     $this->makeAuthUrl();
@@ -94,10 +88,6 @@ class WebAuthSession {
 
     // Get our session data.
     $this->loadSessionData();
-  }
-
-  public function getSessionName() {
-    return $this->name;
   }
 
   public function getSessionData($key = NULL) {
