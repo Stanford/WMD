@@ -66,6 +66,8 @@ function webauth_boot() {
 function webauth_init() {
   global $user;
 
+  drupal_add_css(drupal_get_path('module', 'webauth') . '/webauth.css');
+
   // Make sure we are handling 403 errors to implement auto-login
   $access_denied_page = variable_get('site_403', '');
   if ($access_denied_page != 'webauth/403') {
@@ -304,6 +306,36 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
     case 'user_login':
       $form['name']['#title'] = t('Local Drupal Username');
       $form['pass']['#title'] = t('Local Drupal Password');
+
+      if ($form_id === 'user_login') {
+        // create a WebAuth login link
+        if (!$_webauth_session) {
+          $_webauth_session = new WebAuthSession();
+        }
+        $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
+
+        // create a wrapper for the webauth link so we can de-emphasize the local user login form
+        $form['webauth_login_wrapper']['#title']       = t('WebAuth Login');
+        $form['webauth_login_wrapper']['#type']        = 'fieldset';
+        $form['webauth_login_wrapper']['#collapsible'] = TRUE;
+        $form['webauth_login_wrapper']['#collapsed']   = FALSE;
+        $form['webauth_login_wrapper']['webauth_login_link']['#value'] = theme('webauth_login_block', $webauth_login, variable_get('webauth_link_text', 'Log in with WebAuth'));
+
+        // create a wrapper for the form, so we can de-emphasize the local user login form
+        $form['local_login_wrapper']['#title']       = 'Local User Login';
+        $form['local_login_wrapper']['#type']        = 'fieldset';
+        $form['local_login_wrapper']['#collapsible'] = TRUE;
+        $form['local_login_wrapper']['#collapsed']   = TRUE;
+
+        // copy and move the form fields into the wrapper
+        $form['local_login_wrapper']['name'] = $form['name'];
+        $form['local_login_wrapper']['pass'] = $form['pass'];
+        $form['local_login_wrapper']['submit'] = $form['submit'];
+        unset($form['name']);
+        unset($form['pass']);
+        unset($form['submit']);
+      }
+ 
       if (isset($form_state['weblogin']['server'])) {
         $form['#validate'] = array(
           'user_login_name_validate',
@@ -311,6 +343,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
           'user_login_final_validate',
         );
       }
+
       // drupal_execute() for user_login comes here, and we can lose our login
       // redirect context, so if we are on the auth path here, we should stop
       // altering at this point.
