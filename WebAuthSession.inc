@@ -22,11 +22,6 @@ class WebAuthSession {
   protected $headers = array();
 
   /**
-   * Raw return data from check.php.
-   */
-  protected $returnData = array();
-
-  /**
    * WebAuth AT Cookie.
    */
   protected $atCookie;
@@ -248,10 +243,11 @@ class WebAuthSession {
       $return .= fread($sock, 8192);
     }
     fclose($sock);
-    list($this->returnData['headers'],
-      $this->returnData['body']) = explode("\r\n\r\n", $return);
+    $return_data = array();
+    list($return_data['headers'],
+         $return_data['body']) = explode("\r\n\r\n", $return);
 
-    $headers = explode("\r\n", $this->returnData['headers']);
+    $headers = explode("\r\n", $return_data['headers']);
     $status = (bool) (strpos($headers[0], 'HTTP/1.1 200 OK') !== FALSE);
     if ($status) {
       $this->loggedIn = TRUE;
