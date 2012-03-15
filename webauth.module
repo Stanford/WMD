@@ -332,6 +332,14 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter() for system_clean_url_settings()
+ */
+function webauth_form_system_clean_url_settings_alter(&$form, &$form_state) {
+  // When clean URLs settings are updated, recreate the .htaccess file
+  $form['#submit'][] = 'webauth_write_htaccess';
+}
+
 function webauth_form_user_pass_alter(&$form, &$form_state) {
   $form['name']['#description'] = filter_xss(t('Note: For local Drupal accounts only. Do not use this form to request a new password for a SUNet account. Use <a href="https://stanfordyou.stanford.edu">StanfordYou</a>.'));
   $form['#validate'][] = 'webauth_user_pass_validate';
