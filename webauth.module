@@ -324,6 +324,9 @@ function webauth_return() {
     $_webauth_session = new WebAuthSession();
   }
 
+  // If the user has no webauth_at cookie, redirect immediately to log in through WebAuth
+  // After they go through there, they'll go through the menu system and come back
+  // to this function again
   if (!isset($_COOKIE['webauth_at'])) {
     $_webauth_session->getWeblogin();
   }
