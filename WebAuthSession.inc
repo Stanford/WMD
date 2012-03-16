@@ -220,54 +220,45 @@ class WebAuthSession {
     return $return;
   }
 
+  /**
+   * Retrieves the headers from a WebAuth-protected resource using the user's webauth_at cookie
+   *
+   * Also sets the class' isLoggedIn property
+   */
   public function getHeaderData() {
-    // Read and parse the header data provided by requesting check.php.
-    // This is the source of all webauth data for the system.
     $url = parse_url(url(variable_get('webauth_path', conf_path() . '/webauth') . '/check.php', array('absolute' => TRUE)));
     if (variable_get('clean_url', FALSE) == FALSE) {
       $url['path'] = base_path() . variable_get('webauth_path', conf_path() . '/webauth') . '/check.php';
     }
-    $sock = fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 10);
-    if (!$sock) {
-      drupal_set_message(t('Unable to authenticate because of socket error: @error', array('@error' => $errstr)), 'error');
-      return FALSE;
-    }
-    fwrite($sock, "GET " . $url['path'] . " HTTP/1.1\r\n");
-    fwrite($sock, "Host: " . $url['host'] . "\r\n");
-    fwrite($sock, "Connection: close\r\n");
-    fwrite($sock, "Cookie: webauth_at=" . urlencode($this->atCookie) . "\r\n");
-    fwrite($sock, "Accept: */*\r\n");
-    fwrite($sock, "\r\n");
-    fwrite($sock, "\r\n");
 
-    $return = '';
-    while (!feof($sock)) {
-      $return .= fread($sock, 8192);
-    }
-    fclose($sock);
-    $return_data = array();
-    list($return_data['headers'],
-         $return_data['body']) = explode("\r\n\r\n", $return);
+    // Add the webauth_at cookie to the request and don't follow redirects
+    $request_options = array(
+      'headers'       => array('Cookie' => "webauth_at=" . urlencode($_COOKIE['webauth_at'])),
+      'max_redirects' => 0,
+    );
 
-    $headers = explode("\r\n", $return_data['headers']);
-    $status = (bool) (strpos($headers[0], 'HTTP/1.1 200 OK') !== FALSE);
-    if ($status) {
-      $this->loggedIn = TRUE;
-      foreach ($headers as $header) {
-        $header_array = explode(': ', $header, 2);
-        // Must have two or list() will warn.
-        if (count($header_array) == 2) {
-          list($hName, $hVal) = $header_array;
-          $hName = trim($hName);
-          $hVal = trim($hVal);
-          if (substr($hName, 0, 3) == 'wa_') {
-            $this->headers[$hName] = $hVal;
-          }
+    $request_result = drupal_http_request("https://" . $url['host'] . $url['path'], $request_options);
+
+    // If there are is an error, log it and return.
+    if (isset($request_result->error)) {
+      watchdog('webauth', 'Connecting to check.php failed, due to "%error".', array('%error' => $result->code . ' ' . $result->error), WATCHDOG_WARNING);
+      $this->loggedIn = FALSE;
+      return;
+    }
+
+    // If the request succeeded and it returned a header with the username,
+	// save all headers in the class.
+    if (($request_result->code == 200) && isset($request_result->headers['wa_user'])) {
+      foreach ($request_result->headers as $name => $value) {
+        if (substr($name, 0, 3) == 'wa_') {
+          $this->headers[$name] = $value;
         }
       }
+      $this->loggedIn = TRUE;
     }
     else {
       $this->loggedIn = FALSE;
     }
   }
+
 }
