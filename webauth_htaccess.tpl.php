@@ -1,3 +1,5 @@
+# This file is auto-generated. Changes will be overwritten.
+
 AuthType WebAuth
 WebAuthLdapAttribute displayName
 WebAuthLdapAttribute suAffiliation
@@ -9,7 +11,6 @@ RewriteCond %{REQUEST_FILENAME} !-f
 <?php print $rewrite_url; ?>
 <?php endif; ?>
 
-# Auto-generated below this line. Changes will be overwritten.
 <?php if ($require_valid_user): ?>
 require valid-user
 <?php else: ?>
