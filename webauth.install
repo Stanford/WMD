@@ -2,20 +2,37 @@
 /**
  * Implementation of hook_requirements()
  *
- * Check writability of the webaith directory on install so we don't create a
+ * Check writability of the webauth directory on install so we don't create a
  * broken site.
  */
 function webauth_requirements($phase) {
   $requirements = array();
   $t = get_t();
 
-  // Report Drupal version
   if ($phase == 'install') {
     $webauth_path = conf_path() . '/webauth';
-    if (!file_check_directory($webauth_path, FILE_CREATE_DIRECTORY)) {
+
+    // Check to see if the directory exists, and if not, create it
+    if (!is_dir($webauth_path)) {
+      if (@mkdir($webauth_path)) {
+        drupal_set_message($t('The directory %directory has been created.', array('%directory' => $webauth_path)));
+        @chmod($directory, 0775);
+      }                                   
+      else {
+        $requirements['webauth'] = array(
+          'title' => $t('WebAuth.'),
+          'value' => $t('The directory %dir could not be created, possibly because the parent %parent is not writable. WebAuth could not be enabled. Please create %dir manually and re-enable WebAuth.', array('%dir' => $webauth_path, '%parent' => conf_path())),
+          'severity' => REQUIREMENT_ERROR,
+        );
+        return $requirements;
+      }
+    }
+
+    // Check to see if the directory is writable
+    if (!is_writable($webauth_path)) {
       $requirements['webauth'] = array(
         'title' => $t('WebAuth.'),
-        'value' => $t('The directory %dir could not be created, possibly because the parent %parent is not writable. WebAuth could not be enabled. Please create %dir manually and re-enable WebAuth.', array('%dir' => $webauth_path, '%parent' => conf_path())),
+        'value' => $t('The directory %dir is not writable. WebAuth could not be enabled. Please modify the permissions on %dir manually and re-enable WebAuth.', array('%dir' => $webauth_path)),
         'severity' => REQUIREMENT_ERROR,
       );
     }
