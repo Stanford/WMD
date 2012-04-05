@@ -1,6 +1,12 @@
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
+
+WebAuth 6.x-3.3 2012-04-04
+------------------------------
+#97 by mrmarco: Installation fails when using installation profiles
+
+
 WebAuth 6.x-3.2 2012-03-02
 ------------------------------
 #74 by mrmarco: WebAuth tries to use a non-existent cookie
