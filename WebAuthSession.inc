@@ -247,7 +247,7 @@ class WebAuthSession {
     }
 
     // If the request succeeded and it returned a header with the username,
-	// save all headers in the class.
+    // save all headers in the class.
     if (($request_result->code == 200) && isset($request_result->headers['wa_user'])) {
       foreach ($request_result->headers as $name => $value) {
         if (substr($name, 0, 3) == 'wa_') {
