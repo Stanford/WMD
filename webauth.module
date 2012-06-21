@@ -592,9 +592,6 @@ function webauth_grant_roles(&$edit, &$account) {
       $new['roles'][variable_get('webauth_default_role', 0)] = $default_name;
     }
 
-    // Unserialize data.
-    $data = unserialize($account->data);
-    $data = is_array($data) ? $data : array();
     $current = array();
 
     // Find all roles that are in the webauth_roles table and add any ones that user is in.
@@ -602,7 +599,6 @@ function webauth_grant_roles(&$edit, &$account) {
     while ($role = $result->fetchObject()) {
       if (in_array($role->group, $groups)) {
         $new['roles'][$role->rid] = $role->name;
-        $data['webauth_assigned_roles'][$role->rid] = $role->name;
         $current[$role->rid] = $role->rid;
         db_delete('webauth_roles_history')
           ->condition('warid', $role->warid)
@@ -621,7 +617,6 @@ function webauth_grant_roles(&$edit, &$account) {
     $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = :uid", array(':uid' => $account->uid));
     while ($role = $result->fetchObject()) {
       if (!isset($current[$role->rid])) {
-        unset($data['webauth_assigned_roles'][$role->rid]);
         unset($new['roles'][$role->rid]);
         db_delete('webauth_roles_history')
           ->condition('uid', $account->uid)
@@ -634,7 +629,6 @@ function webauth_grant_roles(&$edit, &$account) {
       }
     }
 
-    $account->data = serialize($data);
     user_save($account, $new);
   }
 }
