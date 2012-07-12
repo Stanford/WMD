@@ -258,7 +258,7 @@ function _webauth_login_url_html() {
     $_webauth_session = new WebAuthSession();
   }
 
-  $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
+  $webauth_login = $_webauth_session->getLoginUrl();
   if ($user->uid === 0) {
     return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Log in with WebAuth')));
   }
@@ -298,15 +298,8 @@ function webauth_error_page() {
   }
   // If not logged in
   else {
-    // If a redirect location doesn't exist
-    $redirect = variable_get('webauth_destination', '');
-    if (empty($redirect)) {
-      // then get the current url
-      $redirect = drupal_get_destination();
-      $redirect = $redirect['destination'];
-    }
     // Redirect to login
-    $_webauth_session->getWeblogin($redirect);
+    $_webauth_session->getWeblogin();
   }
 
 }
@@ -416,7 +409,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
         if (!$_webauth_session) {
           $_webauth_session = new WebAuthSession();
         }
-        $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
+        $webauth_login = $_webauth_session->getLoginUrl();
 
 		// create a wrapper for the webauth link so we can de-emphasize the local user login form
 	    $form['webauth_login_wrapper']['#title']       = t('WebAuth Login');

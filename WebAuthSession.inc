@@ -141,15 +141,13 @@ class WebAuthSession {
     }
   }
 
-  public function getWeblogin($redirect = NULL) {
-    if (!empty($redirect)) {
-      $this->makeAuthUrl($redirect);
-    }
+  public function getWeblogin() {
+    $this->makeAuthUrl();
     header("Location: " . $this->authUrl);
     exit();
   }
 
-  public function makeReturnUrl($url = NULL) {
+  public function makeReturnUrl() {
     // if there is a post-login destination set, that's the destination
 	// otherwise, it's the regular drupal destination
     $post_login_destination = trim(variable_get('webauth_destination', ''));
@@ -163,14 +161,14 @@ class WebAuthSession {
 	}
   }
 
-  public function makeAuthUrl($redirect = NULL) {
+  public function makeAuthUrl() {
     // Create auth URL.
-    $this->authUrl = $this->getLoginUrl($redirect);
+    $this->authUrl = $this->getLoginUrl();
   }
 
-  public function getLoginUrl($url = NULL) {
+  public function getLoginUrl() {
     // Make sure we create a return url before we make a login url.
-    $this->makeReturnUrl($url);
+    $this->makeReturnUrl();
 
     // This is a fix for non-clean urls.  Need to provide a link to the full
     // path so that we hit the webauth dir. That dir will redirect to proper
