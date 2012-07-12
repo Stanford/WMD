@@ -154,44 +154,17 @@ class WebAuthSession {
   }
 
   public function makeReturnUrl($url = NULL) {
-    // Figure out our return destination and save to the session for later consumption
-    $returnDest = $url;
-    if (empty($returnDest)) {
-      $wa_dest = trim(variable_get('webauth_destination', 'user'));
-      if (isset($_GET['destination']) && strcmp($_GET['destination'], 'admin') !== TRUE) {
-        $returnDest = $_GET['destination'];
-      }
-      elseif (isset($wa_dest)) {
-        $returnDest = $wa_dest;
-      }
-      elseif (isset($_GET['q']) && strcmp($_GET['q'], 'user/login') != 0) {
-        $returnDest = $_GET['q'];
-      }
+    // if there is a post-login destination set, that's the destination
+	// otherwise, it's the regular drupal destination
+    $post_login_destination = trim(variable_get('webauth_destination', ''));
+
+	if (!empty($post_login_destination)) {
+      $this->returnUrl  = $post_login_destination;
     }
-
-    $this->returnUrl  = $returnDest;
-
-    // Save query for later use.
-    $query = '';
-    $temp_query = $_GET;
-
-    // don't save q or destination
-    unset($temp_query['q']);
-    unset($temp_query['destination']);
-
-    // The string replacement is for aesthetic purposes only
-    $query = str_replace('%2F', '/', http_build_query($temp_query, '', '&'));
-
-    if ($query != '') {
-      if (strpos($this->returnUrl, '?') === FALSE) {
-        $this->returnUrl .= '?';
-      }
-      $this->returnUrl .= $query;
-    }
-
-    if ($url != NULL) {
-      $_SESSION['wa_return_url'] = $this->returnUrl;
-    }
+	else {
+	  $destination = drupal_get_destination();
+      $this->returnUrl  = $destination['destination'];
+	}
   }
 
   public function makeAuthUrl($redirect = NULL) {
@@ -206,6 +179,8 @@ class WebAuthSession {
     // This is a fix for non-clean urls.  Need to provide a link to the full
     // path so that we hit the webauth dir. That dir will redirect to proper
     // non-clean path after authentication via webauth.
+	// Without this, a person who's not logged in to WebAuth will end up
+	// in a redirect loop. Unfortunately, we lose the destination if someone logs in and clean URLs are off
     if (!variable_get('clean_url', FALSE)) {
       $return = 'https://' . $_SERVER['SERVER_NAME'] . base_path() . variable_get('webauth_path', conf_path() . '/webauth')
                 . '/login';

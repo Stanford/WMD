@@ -299,7 +299,8 @@ function webauth_error_page() {
   // If not logged in
   else {
     // If a redirect location doesn't exist
-    if (!$redirect = variable_get('webauth_destination', '')) {
+    $redirect = variable_get('webauth_destination', '');
+    if (empty($redirect)) {
       // then get the current url
       $redirect = drupal_get_destination();
       $redirect = $redirect['destination'];
@@ -546,24 +547,35 @@ function webauth_user_logout($account) {
  */
 
 function webauth_update_fields(&$edit, &$account) {
+  global $_webauth_session;
+  global $user;
+
   // We only want to run these if the user is self-creating via webauth.
   // Otherwise an admin user will transpose their own values onto any
   // account they manually create.
-  global $_webauth_session;
-  global $user;
-  if ($user->uid == 0) {
-    if (!$_webauth_session) {
-      $_webauth_session = new WebAuthSession();
-    }
 
-    $mail = $_webauth_session->getSessionData('wa_ldap_mail');
-    $mail =  isset($mail) ? $mail : $account->name;
-    db_update('users')
-      ->fields(array(
-        'mail' => $mail,
-      ))
-      ->condition('uid', $account->uid)
-      ->execute();
+  if ($user->uid == 0) {
+
+    // Check to see if the user has already specified an email
+    // Self-registering users will have one.
+	// If not, try to get it from WebAuth and if not available
+	// use the username which should be a valid email.
+
+    $mail = $edit['mail'];
+	if (!(isset($mail)) || empty($mail)) {
+      if (!$_webauth_session) {
+        $_webauth_session = new WebAuthSession();
+      }
+
+      $mail = $_webauth_session->getSessionData('wa_ldap_mail');
+      $mail =  isset($mail) ? $mail : $account->name;
+      db_update('users')
+        ->fields(array(
+          'mail' => $mail,
+        ))
+        ->condition('uid', $account->uid)
+        ->execute();
+    }
   }
 }
 
@@ -692,7 +704,7 @@ function webauth_write_htaccess() {
 
   if (!variable_get('clean_url', 0)) {
     $new_path = base_path() . '?q=' . variable_get('webauth_path', conf_path() . '/webauth') . '/login';
-    $rewrite_url .= 'RewriteRule login(.*)$ ' . $new_path . '$1 [L,R=301]';
+    $rewrite_url .= 'RewriteRule login$ ' . $new_path . ' [QSA,L,R=301]';
   }
 
   // Theme contents of the .htaccess file.
