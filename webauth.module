@@ -391,9 +391,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       $account = $form['#user'];
       if (!empty($account->roles)) {
         if (in_array(variable_get('webauth_default_role', ''), array_keys($account->roles))) {
-          // Hide elements for SUNet Users.
-          $form['account']['name']['#type'] = 'hidden';
-          $form['account']['name']['#value'] = $account->name;
+          // Hide password element for SUNet Users.
           $form['account']['pass']['#type'] = 'hidden';
           $form['account']['current_pass']['#type'] = 'hidden';
           unset($form['account']['current_pass_required_values']['#value']['mail']);
