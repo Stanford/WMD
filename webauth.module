@@ -538,7 +538,6 @@ function webauth_user_logout($account) {
     setcookie('WMDsecureLogin', '', REQUEST_TIME - 3600);
   }
   unset($_SESSION['wa_session_data']);
-  unset($_SESSION['wa_return_url']);
 }
 
 
