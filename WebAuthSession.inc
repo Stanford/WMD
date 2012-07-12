@@ -80,7 +80,7 @@ class WebAuthSession {
     }
   }
 
-  public function getReturnUrl($clear = FALSE) {
+  public function getReturnUrl() {
     return $this->returnUrl;
   }
 

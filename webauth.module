@@ -349,7 +349,7 @@ function webauth_return() {
   if (!$_webauth_session->isValidSession()) {
     drupal_set_message(t('Unknown error occurred.'));
   }
-  $return = $_webauth_session->getReturnUrl(TRUE);
+  $return = $_webauth_session->getReturnUrl();
   $login = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
   if (substr($return, 0, strlen($login)) == $login) {
     $return = '';
