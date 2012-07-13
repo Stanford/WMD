@@ -258,7 +258,7 @@ function _webauth_login_url_html() {
     $_webauth_session = new WebAuthSession();
   }
 
-  $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
+  $webauth_login = $_webauth_session->getLoginUrl();
   if ($user->uid === 0) {
     return theme('webauth_login_block',array('login_url' => $webauth_login, 'login_text' => variable_get('webauth_link_text', 'Log in with WebAuth')));
   }
@@ -298,14 +298,8 @@ function webauth_error_page() {
   }
   // If not logged in
   else {
-    // If a redirect location doesn't exist
-    if (!$redirect = variable_get('webauth_destination', '')) {
-      // then get the current url
-      $redirect = drupal_get_destination();
-      $redirect = $redirect['destination'];
-    }
     // Redirect to login
-    $_webauth_session->getWeblogin($redirect);
+    $_webauth_session->getWeblogin();
   }
 
 }
@@ -337,6 +331,12 @@ function webauth_return() {
       $form_state['values']['name'] = $_webauth_session->getSessionData('wa_remote_user');
       $form_state['values']['pass'] = 'dummy';
       $form_state['weblogin']['server'] = variable_get('webauth_domain', WEBAUTH_DOMAIN);
+
+      // We check this flag later, when registering new users through WebAuth
+	  // We can't use authmap yet at that point since the user has not been added to the table yet
+      global $webauth_authenticated;
+	  $webauth_authenticated = TRUE;
+
       drupal_form_submit('user_login', $form_state);
     }
     else {
@@ -348,7 +348,7 @@ function webauth_return() {
   if (!$_webauth_session->isValidSession()) {
     drupal_set_message(t('Unknown error occurred.'));
   }
-  $return = $_webauth_session->getReturnUrl(TRUE);
+  $return = $_webauth_session->getReturnUrl();
   $login = variable_get('webauth_path', conf_path() . '/webauth') . '/login';
   if (substr($return, 0, strlen($login)) == $login) {
     $return = '';
@@ -397,9 +397,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
       $account = $form['#user'];
       if (!empty($account->roles)) {
         if (in_array(variable_get('webauth_default_role', ''), array_keys($account->roles))) {
-          // Hide elements for SUNet Users.
-          $form['account']['name']['#type'] = 'hidden';
-          $form['account']['name']['#value'] = $account->name;
+          // Hide password element for SUNet Users.
           $form['account']['pass']['#type'] = 'hidden';
           $form['account']['current_pass']['#type'] = 'hidden';
           unset($form['account']['current_pass_required_values']['#value']['mail']);
@@ -415,7 +413,7 @@ function webauth_form_alter(&$form, &$form_state, $form_id) {
         if (!$_webauth_session) {
           $_webauth_session = new WebAuthSession();
         }
-        $webauth_login = $_webauth_session->getLoginUrl($_GET['q']);
+        $webauth_login = $_webauth_session->getLoginUrl();
 
 		// create a wrapper for the webauth link so we can de-emphasize the local user login form
 	    $form['webauth_login_wrapper']['#title']       = t('WebAuth Login');
@@ -512,7 +510,37 @@ function webauth_user_login(&$edit, &$account) {
  */
 
 function webauth_user_insert(&$edit, &$account, $category) {
-  webauth_update_fields($edit, $account);
+  global $webauth_authenticated;
+
+  // We only want to run these if the user is self-creating via webauth.
+  // Otherwise an admin user will transpose their own values onto any
+  // account they manually create.
+
+  if ($webauth_authenticated) {
+    global $_webauth_session;
+    global $user;
+
+    if (!$_webauth_session) {
+      $_webauth_session = new WebAuthSession();
+    }
+
+    // Try to set the username to the user's preferred name from LDAP, but
+    // first check that no one has that name already (in which case, use the SUNetID)
+    $name = $_webauth_session->getSessionData('wa_ldap_displayname');
+    if (isset($name) && !empty($name) && db_query("SELECT uid FROM {users} WHERE name = :name", array(':name' => $name))->fetchField()) {
+      $name =  $account->name;
+    }
+
+    $mail = $_webauth_session->getSessionData('wa_ldap_mail');
+    $mail =  isset($mail) ? $mail : $account->name;
+    db_update('users')
+      ->fields(array(
+        'mail' => $mail,
+        'name' => $name,
+      ))
+      ->condition('uid', $account->uid)
+      ->execute();
+  }
 }
 
 
@@ -537,34 +565,6 @@ function webauth_user_logout($account) {
     setcookie('WMDsecureLogin', '', REQUEST_TIME - 3600);
   }
   unset($_SESSION['wa_session_data']);
-  unset($_SESSION['wa_return_url']);
-}
-
-
-/**
- * This is a helper function to store webauth-derived data for the user account.
- */
-
-function webauth_update_fields(&$edit, &$account) {
-  // We only want to run these if the user is self-creating via webauth.
-  // Otherwise an admin user will transpose their own values onto any
-  // account they manually create.
-  global $_webauth_session;
-  global $user;
-  if ($user->uid == 0) {
-    if (!$_webauth_session) {
-      $_webauth_session = new WebAuthSession();
-    }
-
-    $mail = $_webauth_session->getSessionData('wa_ldap_mail');
-    $mail =  isset($mail) ? $mail : $account->name;
-    db_update('users')
-      ->fields(array(
-        'mail' => $mail,
-      ))
-      ->condition('uid', $account->uid)
-      ->execute();
-  }
 }
 
 
@@ -592,9 +592,6 @@ function webauth_grant_roles(&$edit, &$account) {
       $new['roles'][variable_get('webauth_default_role', 0)] = $default_name;
     }
 
-    // Unserialize data.
-    $data = unserialize($account->data);
-    $data = is_array($data) ? $data : array();
     $current = array();
 
     // Find all roles that are in the webauth_roles table and add any ones that user is in.
@@ -602,7 +599,6 @@ function webauth_grant_roles(&$edit, &$account) {
     while ($role = $result->fetchObject()) {
       if (in_array($role->group, $groups)) {
         $new['roles'][$role->rid] = $role->name;
-        $data['webauth_assigned_roles'][$role->rid] = $role->name;
         $current[$role->rid] = $role->rid;
         db_delete('webauth_roles_history')
           ->condition('warid', $role->warid)
@@ -621,7 +617,6 @@ function webauth_grant_roles(&$edit, &$account) {
     $result = db_query("SELECT * FROM {webauth_roles_history} WHERE uid = :uid", array(':uid' => $account->uid));
     while ($role = $result->fetchObject()) {
       if (!isset($current[$role->rid])) {
-        unset($data['webauth_assigned_roles'][$role->rid]);
         unset($new['roles'][$role->rid]);
         db_delete('webauth_roles_history')
           ->condition('uid', $account->uid)
@@ -634,7 +629,6 @@ function webauth_grant_roles(&$edit, &$account) {
       }
     }
 
-    $account->data = serialize($data);
     user_save($account, $new);
   }
 }
@@ -698,7 +692,7 @@ function webauth_write_htaccess() {
 
   if (!variable_get('clean_url', 0)) {
     $new_path = base_path() . '?q=' . variable_get('webauth_path', conf_path() . '/webauth') . '/login';
-    $rewrite_url .= 'RewriteRule login(.*)$ ' . $new_path . '$1 [L,R=301]';
+    $rewrite_url .= 'RewriteRule login$ ' . $new_path . ' [QSA,L,R=301]';
   }
 
   // Theme contents of the .htaccess file.

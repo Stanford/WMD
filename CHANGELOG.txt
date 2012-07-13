@@ -1,6 +1,18 @@
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
+WebAuth 7.x-3.1 2012-07-13
+------------------------------
+by mrmarco
+- Allow users to change their username
+- Cleanup of unused code / parameters
+- Use drupal_get_destination instead of custom code
+- Use drupal_http_request instead of custom code
+- Do not save roles in $user object (not used)
+- Re-format .htaccess file
+- Force logout immediately if there is no webauth_at cookie
+- End sessions when browser is quit
+
 WebAuth 7.x-3.0 2012-02-24
 ------------------------------
 by eosrei
