@@ -331,6 +331,12 @@ function webauth_return() {
       $form_state['values']['name'] = $_webauth_session->getSessionData('wa_remote_user');
       $form_state['values']['pass'] = 'dummy';
       $form_state['weblogin']['server'] = variable_get('webauth_domain', WEBAUTH_DOMAIN);
+
+      // We check this flag later, when registering new users through WebAuth
+	  // We can't use authmap yet at that point since the user has not been added to the table yet
+      global $webauth_authenticated;
+	  $webauth_authenticated = TRUE;
+
       drupal_form_submit('user_login', $form_state);
     }
     else {
@@ -504,7 +510,37 @@ function webauth_user_login(&$edit, &$account) {
  */
 
 function webauth_user_insert(&$edit, &$account, $category) {
-  webauth_update_fields($edit, $account);
+  global $webauth_authenticated;
+
+  // We only want to run these if the user is self-creating via webauth.
+  // Otherwise an admin user will transpose their own values onto any
+  // account they manually create.
+
+  if ($webauth_authenticated) {
+    global $_webauth_session;
+    global $user;
+
+    if (!$_webauth_session) {
+      $_webauth_session = new WebAuthSession();
+    }
+
+    // Try to set the username to the user's preferred name from LDAP, but
+    // first check that no one has that name already (in which case, use the SUNetID)
+    $name = $_webauth_session->getSessionData('wa_ldap_displayname');
+    if (isset($name) && !empty($name) && db_query("SELECT uid FROM {users} WHERE name = :name", array(':name' => $name))->fetchField()) {
+      $name =  $account->name;
+    }
+
+    $mail = $_webauth_session->getSessionData('wa_ldap_mail');
+    $mail =  isset($mail) ? $mail : $account->name;
+    db_update('users')
+      ->fields(array(
+        'mail' => $mail,
+        'name' => $name,
+      ))
+      ->condition('uid', $account->uid)
+      ->execute();
+  }
 }
 
 
@@ -529,44 +565,6 @@ function webauth_user_logout($account) {
     setcookie('WMDsecureLogin', '', REQUEST_TIME - 3600);
   }
   unset($_SESSION['wa_session_data']);
-}
-
-
-/**
- * This is a helper function to store webauth-derived data for the user account.
- */
-
-function webauth_update_fields(&$edit, &$account) {
-  global $_webauth_session;
-  global $user;
-
-  // We only want to run these if the user is self-creating via webauth.
-  // Otherwise an admin user will transpose their own values onto any
-  // account they manually create.
-
-  if ($user->uid == 0) {
-
-    // Check to see if the user has already specified an email
-    // Self-registering users will have one.
-	// If not, try to get it from WebAuth and if not available
-	// use the username which should be a valid email.
-
-    $mail = $edit['mail'];
-	if (!(isset($mail)) || empty($mail)) {
-      if (!$_webauth_session) {
-        $_webauth_session = new WebAuthSession();
-      }
-
-      $mail = $_webauth_session->getSessionData('wa_ldap_mail');
-      $mail =  isset($mail) ? $mail : $account->name;
-      db_update('users')
-        ->fields(array(
-          'mail' => $mail,
-        ))
-        ->condition('uid', $account->uid)
-        ->execute();
-    }
-  }
 }
 
 
