@@ -207,10 +207,19 @@ class WebAuthSession {
     );
 
     $request_result = drupal_http_request("https://" . $url['host'] . $url['path'], $request_options);
+	
+    // If check.php is not found, log it and return.
+    if ($request_result->code == 404) {
+      watchdog('webauth', 'Connecting to check.php failed, check.php not found at %path".', array('%path' => 'https://' . $url['host'] . $url['path']), WATCHDOG_WARNING);
+      drupal_set_message(t('Error: Login failed. Please contact the administrator of this website.'),'error');
+      $this->loggedIn = FALSE;
+      drupal_goto('<front>');
+      return;
+    }
 
     // If there are is an error, log it and return.
     if (isset($request_result->error)) {
-      watchdog('webauth', 'Connecting to check.php failed, due to "%error".', array('%error' => $result->code . ' ' . $result->error), WATCHDOG_WARNING);
+      watchdog('webauth', 'Connecting to check.php failed, due to "%error".', array('%error' => $request_result->code . ' ' . $request_result->error), WATCHDOG_WARNING);
       $this->loggedIn = FALSE;
       return;
     }
