@@ -40,8 +40,9 @@ function webauth_boot() {
   elseif (isset($_COOKIE["WMDsecureLogin"]) && $_COOKIE["WMDsecureLogin"]) {
     // An session seems to exist, but we are not in HTTPs.
     // Redirect so we can start secure session.
+    drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
     global $base_url;
-    $url = $base_url . '?q=' . $_GET['q'];
+    $url = $base_url . '/' . drupal_get_path_alias($_GET['q']);
     $url = str_replace('http://', 'https://', $url);
     header("Location: $url");
   }
