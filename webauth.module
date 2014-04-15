@@ -83,8 +83,7 @@ function webauth_init() {
   // the user is logged in as a WebAuth user and:
   // either the user no longer has a webauth_at cookie
   // or the user's token has expired, or is not there
-  $no_check_php_loop = (bool) (array_pop(explode('/', $_GET['q'])) != 'check.php');
-  if ($user->uid > 0 && $no_check_php_loop) {
+  if ($user->uid > 0) {
     // We only want to go further if this user is authenticated via WebAuth
     if (db_result(db_query("SELECT * FROM {authmap} WHERE uid = %d and module = 'webauth'", $user->uid))) {
       if ((!isset($_COOKIE['webauth_at'])) ||
