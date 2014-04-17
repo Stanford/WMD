@@ -150,43 +150,16 @@ class WebAuthSession {
   }
 
   public function makeReturnUrl($url = NULL) {
-    // Figure out our return destination and save to the session for later consumption
-    $returnDest = $url;
-    if (empty($returnDest)) {
-      $wa_dest = trim(variable_get('webauth_destination', 'user'));
-      if (isset($_GET['destination']) && strcmp($_GET['destination'], 'admin') !== TRUE) {
-        $returnDest = $_GET['destination'];
-      }
-      elseif (isset($wa_dest)) {
-        $returnDest = $wa_dest;
-      }
-      elseif (isset($_GET['q']) && strcmp($_GET['q'], 'user/login') != 0) {
-        $returnDest = $_GET['q'];
-      }
+    // if there is a post-login destination set, that's the destination
+    // otherwise, it's the regular drupal destination
+    $post_login_destination = trim(variable_get('webauth_destination', ''));
+
+    if (!empty($post_login_destination)) {
+      $this->returnUrl  = $post_login_destination;
     }
-
-    $this->returnUrl  = $returnDest;
-
-    // Save query for later use.
-    $query = '';
-    $temp_query = $_GET;
-
-    // don't save q or destination
-    unset($temp_query['q']);
-    unset($temp_query['destination']);
-
-    // The string replacement is for aesthetic purposes only
-    $query = str_replace('%2F', '/', http_build_query($temp_query, '', '&'));
-
-    if ($query != '') {
-      if (strpos($this->returnUrl, '?') === FALSE) {
-        $this->returnUrl .= '?';
-      }
-      $this->returnUrl .= $query;
-    }
-
-    if ($url != NULL) {
-      $_SESSION['wa_return_url'] = $this->returnUrl;
+    else {
+      $destination = drupal_get_destination();
+      $this->returnUrl  = substr($destination, 12);
     }
   }
 
@@ -247,6 +220,14 @@ class WebAuthSession {
          $return_data['body']) = explode("\r\n\r\n", $return);
 
     $headers = explode("\r\n", $return_data['headers']);
+
+    if (strpos($headers[0], 'HTTP/1.1 404 Not Found') !== FALSE) {
+      watchdog('webauth', 'Connecting to check.php failed, check.php not found at %path".', array('%path' => 'https://' . $url['host'] . $url['path']), WATCHDOG_WARNING);
+      drupal_set_message(t('Error: Login failed. Please contact the administrator of this website.'),'error');
+      $this->loggedIn = FALSE;
+      drupal_goto('<front>');
+      return;
+    }
     $status = (bool) (strpos($headers[0], 'HTTP/1.1 200 OK') !== FALSE);
     if ($status) {
       $this->loggedIn = TRUE;
