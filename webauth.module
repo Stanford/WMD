@@ -229,6 +229,12 @@ function webauth_return() {
       $form_state['values']['name'] = $_webauth_session->getSessionData('wa_remote_user');
       $form_state['values']['pass'] = 'dummy';
       $form_state['weblogin']['server'] = variable_get('webauth_domain', WEBAUTH_DOMAIN);
+
+      // We check this flag later, when registering new users through WebAuth
+      // We can't use authmap yet at that point since the user has not been added to the table yet
+      global $webauth_authenticated;
+      $webauth_authenticated = TRUE;
+
       drupal_execute('user_login', $form_state);
     }
     else {
@@ -412,7 +418,9 @@ function webauth_user($op, &$edit, &$account, $category = NULL) {
       // Otherwise an admin user will transpose their own values onto any
       // account they manually create.
       global $user;
-      if ($user->uid == 0) {
+      global $webauth_authenticated;
+
+      if (($user->uid == 0) && ($webauth_authenticated)) {
         webauth_update_fields($edit, $account);
       }
       break;
