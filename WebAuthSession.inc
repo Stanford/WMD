@@ -159,7 +159,11 @@ class WebAuthSession {
     }
     else {
       $destination = drupal_get_destination();
-      $this->returnUrl  = substr($destination, 12);
+	  $destination = substr($destination, 12);
+	  if ($destination == 'user%2Flogin') {
+	    $destination = 'user';
+	  }
+      $this->returnUrl  = $destination;
     }
   }
 
