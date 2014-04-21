@@ -554,6 +554,14 @@ function webauth_user_delete($account) {
     ->execute();
 }
 
+/**
+ * Implements hook_user_role_delete().
+ */
+
+function webauth_user_role_delete($role) {
+  db_delete('webauth_roles')->condition('rid', $role->rid)->execute();
+}
+
 
 /**
  * Implements hook_user_logout().
