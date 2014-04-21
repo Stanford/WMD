@@ -5,10 +5,11 @@ WebAuth 6.x-3.4 2014-04-21
 ------------------------------
 by mrmarco: Updated version number
 by mrmarco: 404 check for check.php. Check.
-#92  by mrmarco: Removed no_check_php_loop_variable
-#95  by mrmarco: user/login won't redirect to itself after login
-#112 by mrmarco: New local accounts email address is preserved
-#119 by mrmarco: PHP 5.4 update
+#92  by mrmarco:  Removed no_check_php_loop_variable
+#95  by mrmarco:  user/login won't redirect to itself after login
+#112 by mrmarco:  New local accounts email address is preserved
+#117 by cfuhrman: Add PostgreSQL support 
+#119 by mrmarco:  PHP 5.4 update
 
 
 WebAuth 6.x-3.3 2012-04-04
