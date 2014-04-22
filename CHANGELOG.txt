@@ -1,7 +1,7 @@
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
-WebAuth 7.x-3.4 2014-04-21
+WebAuth 7.x-3.2 2014-04-21
 ------------------------------
 by mrmarco
 - General Cleanup
