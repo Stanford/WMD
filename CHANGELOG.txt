@@ -1,6 +1,17 @@
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
+WebAuth 7.x-3.4 2014-04-21
+------------------------------
+by mrmarco
+- General Cleanup
+- Fix the addition of ?q= in some cases
+- Remove the no_check_loop variable
+- Update 404 check for check.php
+- Remove mappings from DB if role is removed
+by cfuhrman
+- PostgreSQL support
+
 WebAuth 7.x-3.1 2012-07-13
 ------------------------------
 by mrmarco
