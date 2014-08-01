@@ -171,9 +171,10 @@ function webauth_block_info() {
     'info'       => t('WebAuth Authentication'),
     'status'     => 1,
     'visibility' => BLOCK_VISIBILITY_NOTLISTED,
-	'pages'      => "user\nuser/*",
+    'pages'      => "user\nuser/*",
     'weight'     => 0,
-    'region'     => 'sidebar_first'
+    'region'     => 'sidebar_first',
+    'cache'      => DRUPAL_CACHE_PER_PAGE,
   );
   return $blocks;
 }
