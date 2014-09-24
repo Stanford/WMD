@@ -174,7 +174,7 @@ function webauth_block_info() {
     'pages'      => "user\nuser/*",
     'weight'     => 0,
     'region'     => 'sidebar_first',
-    'cache'      => DRUPAL_CACHE_PER_PAGE,
+    'cache'      => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
