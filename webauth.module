@@ -17,6 +17,7 @@ define('WEBAUTH_DOMAIN', 'stanford.edu');
  */
 
 function webauth_boot() {
+
   if (!empty($_SERVER['HTTPS'])) {
     global $base_url, $user, $base_path;
 
@@ -25,7 +26,7 @@ function webauth_boot() {
 
     // Session cookies should be deleted when the browser session ends
     ini_set('session.cookie_lifetime', 0);
-    
+
     $base_url = str_replace('http://', 'https://', $base_url);
 
     // Set a flag to indicate the user is logged in and that there are
@@ -40,12 +41,15 @@ function webauth_boot() {
   elseif (isset($_COOKIE["WMDsecureLogin"]) && $_COOKIE["WMDsecureLogin"]) {
     // An session seems to exist, but we are not in HTTPs.
     // Redirect so we can start secure session.
-    drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
-    global $base_url;
-    $url = $base_url . '/' . drupal_get_path_alias($_GET['q']);
-    $url = str_replace('http://', 'https://', $url);
+    $base_url = $_SERVER["SERVER_NAME"];
+    $query = check_plain($_GET['q']);
+    $url = "https://" . $base_url . check_plain($_SERVER['REQUEST_URI']);
+    if (!empty($query)) {
+      $url .= "?q=" . $query;
+    }
     header("Location: $url");
   }
+
 }
 
 
@@ -83,7 +87,7 @@ function webauth_init() {
           (!isset($_SESSION['wa_session_data']['wa_token_expiration'])) ||
           ($_SESSION['wa_session_data']['wa_token_expiration'] <= time())
          ) {
-        // Destroy the current session 
+        // Destroy the current session
         session_destroy();
         // Start a new session so that we don't clobber other functions that expect
         // a session (like logout)
