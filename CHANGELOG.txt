@@ -1,6 +1,11 @@
 WebAuth x.x-x.x xxxx-xx-xx
 ------------------------------
 
+WebAuth 7.x-3.4 2014-11-06
+------------------------------
+by jbickar
+- Do not cache login block
+
 WebAuth 7.x-3.3 2014-08-01
 ------------------------------
 by jbickar
